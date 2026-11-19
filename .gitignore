@@ -1,0 +1,26 @@
+﻿__pycache__/
+*.py[cod]
+.venv/
+.env
+.vscode/
+
+# Original astronomical data
+full_dataset/
+TESS_sample_150/
+lightcurve_inspection/
+prepared_lightcurves/
+qlp_diagnostics/
+transit_analysis_150/
+transit_inspection/
+
+# Generated data and reports
+*.fits
+*.csv
+*.npz
+*.joblib
+*.png
+*.bak
+*.bak2
+
+# Local backups
+backups/
