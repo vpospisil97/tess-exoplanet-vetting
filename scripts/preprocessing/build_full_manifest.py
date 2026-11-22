@@ -66,12 +66,34 @@ def main():
         low_memory=False
     )
 
-    pilot = pd.read_csv(
-        PILOT_MANIFEST,
-        low_memory=False
-    )
+    # Pilot manifest is optional. A fresh clone can generate the full
+    # download manifest without any local pilot artifacts.
+    if PILOT_MANIFEST.is_file():
+        pilot = pd.read_csv(
+            PILOT_MANIFEST,
+            low_memory=False
+        )
 
-    for df in [signals, lightcurves, pilot]:
+        required_pilot = {"tic_id", "hf_path"}
+        if not required_pilot.issubset(pilot.columns):
+            raise ValueError(
+                "Pilotni manifest nema povinne sloupce "
+                "tic_id a hf_path."
+            )
+
+        pilot["tic_id"] = pilot["tic_id"].map(
+            normalize_tic
+        )
+        pilot_paths = set(pilot["hf_path"].astype(str))
+        print("Pilotni manifest nalezen:", PILOT_MANIFEST)
+    else:
+        pilot_paths = set()
+        print(
+            "Pilotni manifest nebyl nalezen; "
+            "vsechny FITS budou vedeny jako mimo pilot."
+        )
+
+    for df in [signals, lightcurves]:
         df["tic_id"] = df["tic_id"].map(
             normalize_tic
         )
@@ -222,12 +244,8 @@ def main():
         + fits_manifest["hf_path"]
     )
 
-    # Zjistime, ktere soubory uz jsou
-    # v pilotnim vzorku.
-    pilot_paths = set(
-        pilot["hf_path"].astype(str)
-    )
-
+    # Zjistime, ktere FITS uz byly v pilotnim manifestu.
+    # Bez pilotniho manifestu jsou vsechny hodnoty False.
     fits_manifest["in_pilot"] = (
         fits_manifest["hf_path"].isin(
             pilot_paths
