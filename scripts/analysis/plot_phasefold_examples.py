@@ -1,3 +1,5 @@
+"""Vykresluje příklady fázovaného tranzitu z pilotních dat."""
+
 
 from pathlib import Path
 from collections import defaultdict
@@ -29,6 +31,7 @@ MAX_SCATTER_POINTS = 2000
 
 
 def as_bool(series):
+    """Sjednotí textové příznaky logických hodnot v tabulce."""
     return (
         series.astype("string")
         .str.strip()
@@ -39,6 +42,7 @@ def as_bool(series):
 
 
 def resolve_fits(value):
+    """Najde dostupný FITS soubor z katalogové cesty."""
     raw = str(value).replace("\\", "/").strip()
     path = Path(raw)
 
@@ -64,6 +68,7 @@ def resolve_fits(value):
 
 
 def load_lightcurve(path):
+    """Načte fotometrická měření a časovou referenci z FITS."""
     with fits.open(path, memmap=True) as hdul:
         primary_header = hdul[0].header
 
@@ -179,6 +184,7 @@ def load_lightcurve(path):
 
 
 def phase_fold(time_bjd, epoch_bjd, period, duration):
+    """Převede časy měření na fázi tranzitu."""
     phase_days = (
         (time_bjd - epoch_bjd + period / 2)
         % period
@@ -190,6 +196,7 @@ def phase_fold(time_bjd, epoch_bjd, period, duration):
 
 
 def select_examples(coverage):
+    """Vybere reprezentativní pilotní signály pro ukázky."""
     coverage = coverage.copy()
 
     coverage["coverage_pass"] = as_bool(
@@ -256,6 +263,7 @@ def select_examples(coverage):
 
 
 def build_phase_curve(row, files):
+    """Složí fázovou světelnou křivku z dostupných pozorování."""
     all_phases = []
     all_fluxes = []
     successful_files = 0
@@ -319,6 +327,7 @@ def build_phase_curve(row, files):
 
 
 def bin_lightcurve(phases, fluxes):
+    """Agreguje fázovaná měření do pravidelných intervalů."""
     edges = np.linspace(-3, 3, 61)
 
     centers = (
@@ -351,6 +360,7 @@ def bin_lightcurve(phases, fluxes):
 
 
 def main():
+    """Vytvoří grafické ukázky fázově složených tranzitů."""
     print("=" * 72)
     print("TESS - PILOTNI PHASE FOLDING")
     print("=" * 72)

@@ -1,3 +1,5 @@
+"""Zkoumá základní statistiky a kvalitu měření v souborech FITS."""
+
 
 from pathlib import Path
 

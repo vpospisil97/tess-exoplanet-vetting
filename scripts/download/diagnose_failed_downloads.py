@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Prověřuje neúspěšné přenosy a poškozené soubory FITS."""
+
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from datetime import datetime, timezone
 import time
@@ -24,6 +26,7 @@ SUPPORTED_FLUX = {
 }
 
 def inspect_fits(path):
+    """Prověří strukturu a čitelnost problematického FITS."""
     with fits.open(path, memmap=False, checksum=False) as hdul:
         if len(hdul) < 2:
             return "invalid", "Missing extension 1", ""
@@ -48,6 +51,7 @@ def inspect_fits(path):
 
 
 def main():
+    """Shrne příčiny vybraných neúspěšných stažení."""
     print("=" * 75)
     print("DIAGNOSTIKA TRI CHYBEJICICH TESS FITS")
     print("=" * 75)

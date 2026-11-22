@@ -1,3 +1,5 @@
+"""Trénuje logistickou regresi jako klasifikační baseline."""
+
 
 from pathlib import Path
 import argparse
@@ -37,6 +39,7 @@ OUT_CONFIG = DATA / "baseline_config.json"
 
 
 def load_dataset():
+    """Načte připravené pohledy a zkontroluje integritu dělení podle TIC."""
     if not INPUT_DATA.exists():
         raise FileNotFoundError(INPUT_DATA)
 
@@ -128,14 +131,7 @@ def load_dataset():
 
 
 def build_features(local, global_view):
-    """
-    Jednoducha baseline pouziva:
-    - 101 lokalnich bodu
-    - 201 globalnich bodu
-    - masky dostupnosti mereni
-
-    Celkem 604 vstupnich hodnot.
-    """
+    """Převede oba fázové pohledy na příznakový vektor pro logistickou regresi."""
     n = len(local)
 
     local_flat = local.reshape(n, -1)
@@ -150,6 +146,7 @@ def build_features(local, global_view):
 
 
 def calculate_metrics(y_true, probability):
+    """Vypočítá klasifikační metriky ze štítků a predikovaných skóre."""
     prediction = (
         probability >= 0.5
     ).astype(np.int64)
@@ -213,6 +210,7 @@ def calculate_metrics(y_true, probability):
 
 
 def print_metrics(title, result):
+    """Vypíše přehled základních metrik baseline."""
     print("\n" + "-" * 65)
     print(title)
     print("-" * 65)
@@ -262,6 +260,7 @@ def print_metrics(title, result):
 
 
 def main():
+    """Natrénuje a vyhodnotí standardizovanou logistickou regresi."""
     parser = argparse.ArgumentParser(
         description="TESS baseline classification"
     )

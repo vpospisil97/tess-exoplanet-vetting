@@ -1,3 +1,5 @@
+"""Provádí základní čitelnostní kontrolu pilotních souborů FITS."""
+
 
 from pathlib import Path
 

@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Zjišťuje HTTP metadata problematických FITS souborů."""
+
+from pathlib import Path
 from datetime import datetime, timezone
 from tempfile import TemporaryDirectory
 import time
@@ -28,6 +30,7 @@ CHUNK_SIZE = 1024 * 1024
 
 
 def headers_to_dict(headers):
+    """Vybere diagnostické položky z HTTP hlaviček."""
     return {
         "content_length": headers.get("Content-Length", ""),
         "content_type": headers.get("Content-Type", ""),
@@ -40,6 +43,7 @@ def headers_to_dict(headers):
 
 
 def main():
+    """Porovná HTTP odpovědi problematických souborů."""
     manifest = pd.read_csv(MANIFEST)
     targets = manifest[
         manifest["hf_path"].isin(FAILED_FILES)

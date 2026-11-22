@@ -62,6 +62,7 @@ NUMBER_PER_GROUP = 4
 
 
 def load_validation():
+    """Načte validační reprezentace a odpovídající světelné křivky."""
     print("Loading validation references...")
 
     with np.load(
@@ -167,6 +168,7 @@ def load_validation():
 
 
 def load_error_details(validation):
+    """Načte informace o opakovaných chybách modelu Mantis."""
     print("Loading error analysis...")
 
     if not ERRORS.is_file():
@@ -270,6 +272,7 @@ def load_error_details(validation):
 
 
 def select_examples(examples):
+    """Vybere ukázky opakovaných falešně pozitivních a negativních klasifikací."""
     false_positives = [
         example
         for example in examples
@@ -327,6 +330,7 @@ def select_examples(examples):
 
 
 def plot_view(ax, view, title):
+    """Vykreslí světelný tok a pokrytí jednoho fázového pohledu."""
     flux = view[:, 0]
     coverage = view[:, 1]
 
@@ -389,6 +393,7 @@ def create_figure(
     title,
     destination,
 ):
+    """Sestaví srovnávací grafy z vybraných validačních příkladů."""
     count = len(examples)
 
     fig, axes = plt.subplots(
@@ -447,6 +452,7 @@ def create_figure(
 
 
 def write_report(false_positives, false_negatives):
+    """Uloží stručnou dokumentaci vizualizovaných chyb."""
     REPORT.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -532,6 +538,7 @@ def write_report(false_positives, false_negatives):
 
 
 def main():
+    """Vygeneruje grafy obtížných validačních příkladů."""
     print("=" * 70)
     print("MODEL B - PERSISTENT ERROR VISUALIZATION")
     print("=" * 70)

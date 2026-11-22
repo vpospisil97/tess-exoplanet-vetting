@@ -1,3 +1,5 @@
+"""Analyzuje tranzitní signály z pilotního vzorku TESS."""
+
 
 from pathlib import Path
 
@@ -85,6 +87,7 @@ def robust_scatter(values):
 
 def analyze_signal(manifest_row, signals_by_uid):
 
+    """Zhodnotí pozorování jednoho tranzitního signálu a jeho kvalitu."""
     tic = normalize_tic(manifest_row["tic_id"])
     signal_uid = str(manifest_row["signal_uid"])
 
@@ -343,6 +346,7 @@ def analyze_signal(manifest_row, signals_by_uid):
 
 def main():
 
+    """Zpracuje pilotní soubor signálů a uloží souhrn analýzy."""
     print("=" * 70)
     print("AUTOMATICKA ANALYZA 150 TRANZITNICH SIGNALU TESS")
     print("=" * 70)

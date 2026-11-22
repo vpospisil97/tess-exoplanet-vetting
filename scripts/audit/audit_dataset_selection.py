@@ -1,3 +1,5 @@
+"""Kontroluje výběr katalogových signálů a dostupných světelných křivek."""
+
 
 from pathlib import Path
 
@@ -11,6 +13,7 @@ OUTPUT.mkdir(exist_ok=True)
 
 
 def normalize_tic(value):
+    """Sjednotí identifikátor TIC pro propojení datových tabulek."""
     if pd.isna(value):
         return ""
 
@@ -26,6 +29,7 @@ def normalize_tic(value):
 
 
 def safe_path(value):
+    """Ověří, že katalogová cesta neuniká mimo pracovní adresář."""
     path = Path(str(value).replace("\\", "/"))
 
     return (
@@ -37,6 +41,7 @@ def safe_path(value):
 
 
 def main():
+    """Zkontroluje výběr katalogových signálů a odpovídajících FITS."""
     signals = pd.read_csv(
         BASE / "signals.csv",
         low_memory=False

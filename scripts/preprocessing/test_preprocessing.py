@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Testuje čištění a validitu předzpracovaných měření."""
+
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from astropy.io import fits
@@ -33,12 +35,14 @@ FLUX_PRIORITY = [
 ]
 
 def robust_scale(values):
+    """Odhadne robustní šum a variabilitu měření."""
     median = np.median(values)
     mad = np.median(np.abs(values - median))
     return median, 1.4826 * mad
 
 
 def inspect_and_clean(path):
+    """Zkontroluje kvalitu a průběh čištění jednoho FITS souboru."""
     result = {
         "file": str(path.relative_to(BASE)),
         "status": "unknown",
@@ -206,6 +210,7 @@ def inspect_and_clean(path):
 
 
 def main():
+    """Vyhodnotí funkčnost pilotního předzpracování na vybraných datech."""
     print("=" * 70)
     print("TEST PREDZPRACOVANI TESS SVETELNYCH KRIVEK")
     print("=" * 70)

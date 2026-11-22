@@ -1,3 +1,5 @@
+"""Rozděluje data bez překryvu identifikátorů TIC mezi množinami."""
+
 
 from pathlib import Path
 import argparse
@@ -20,10 +22,7 @@ FRACTIONS = (0.70, 0.15, 0.15)
 
 
 def allocate_groups(groups, rng):
-    """
-    Rozdeli cele TIC hvezdy do tri mnozin.
-    Priblizne zachovava pomer trid.
-    """
+    """Rozdělí skupiny hvězd tak, aby se TIC neopakovaly mezi množinami."""
     result = {}
 
     grouped = groups.groupby(
@@ -88,6 +87,7 @@ def allocate_groups(groups, rng):
 
 
 def main():
+    """Připraví a zkontroluje rozdělení train/validation/test podle TIC."""
     parser = argparse.ArgumentParser(
         description=(
             "TESS train/validation/test "

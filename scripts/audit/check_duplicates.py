@@ -1,3 +1,5 @@
+"""Kontroluje opakování hvězd a souborů v pilotním vzorku."""
+
 
 from pathlib import Path
 import pandas as pd

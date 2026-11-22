@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Kontroluje zastoupení tříd v trénovacím manifestu."""
+
+from pathlib import Path
 import pandas as pd
 
 BASE = Path(__file__).resolve().parent
@@ -6,6 +8,7 @@ PATH = BASE / "full_dataset" / "training_manifest.csv"
 
 
 def main():
+    """Načte trénovací manifest a vypíše rozložení tříd."""
     if not PATH.exists():
         raise FileNotFoundError(
             f"Training manifest nebyl nalezen: {PATH}"

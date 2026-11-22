@@ -38,7 +38,7 @@ import train_mantis_head as head
 
 
 # ============================================================
-# PATHS
+# CESTY
 # ============================================================
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -62,7 +62,7 @@ REPORT = (
 
 
 # ============================================================
-# EXPERIMENT SETTINGS
+# NASTAVENÍ EXPERIMENTU
 # ============================================================
 
 SEED = 42
@@ -111,6 +111,7 @@ CSV_FIELDS = (
 
 def file_sha256(path):
 
+    """Vypočítá kontrolní otisk souboru s příznaky."""
     digest = hashlib.sha256()
 
     with path.open("rb") as stream:
@@ -131,6 +132,7 @@ def file_sha256(path):
 
 def get_feature_hashes():
 
+    """Ověří nezměněné vstupní embeddingy mezi konfiguracemi."""
     result = {}
 
     for name in (
@@ -154,11 +156,12 @@ def get_feature_hashes():
 
 
 # ============================================================
-# CONFIGURATION
+# KONFIGURACE
 # ============================================================
 
 def trial_name(hidden, dropout):
 
+    """Sestaví jednoznačný název konfigurace MLP hlavy."""
     text = str(dropout).replace(
         ".",
         "p",
@@ -172,6 +175,7 @@ def trial_name(hidden, dropout):
 
 def trial_directory(hidden, dropout):
 
+    """Určí výstupní adresář zvolené konfigurace."""
     return (
         OUTPUT
         / trial_name(hidden, dropout)
@@ -184,6 +188,7 @@ def make_config(
     feature_hashes,
 ):
 
+    """Sestaví nastavení klasifikační hlavy pro grid search."""
     config = dict(BASE_CONFIG)
 
     config["hidden_size"] = hidden
@@ -212,6 +217,7 @@ def activate_trial(
     feature_hashes,
 ):
 
+    """Aktivuje izolovanou konfiguraci v trénovacím modulu."""
     head.CONFIG = make_config(
         hidden,
         dropout,
@@ -240,6 +246,7 @@ def run_trial(
     total,
 ):
 
+    """Natrénuje a vyhodnotí jednu konfiguraci na validaci."""
     activate_trial(
         hidden,
         dropout,
@@ -334,6 +341,7 @@ def read_trial(
     feature_hashes,
 ):
 
+    """Načte existující výsledek a ověří jeho konfiguraci."""
     activate_trial(
         hidden,
         dropout,
@@ -396,6 +404,7 @@ def read_trial(
 
 def save_csv(rows):
 
+    """Uloží výsledky zkoušených konfigurací do CSV."""
     OUTPUT.mkdir(
         parents=True,
         exist_ok=True,
@@ -433,6 +442,7 @@ def generate_report(
     feature_hashes,
 ):
 
+    """Vytvoří srovnávací zprávu grid search hlavy Mantis."""
     ranked = sorted(
         rows,
         key=lambda row: (
@@ -594,11 +604,12 @@ def generate_report(
 
 
 # ============================================================
-# MAIN
+# HLAVNÍ BĚH
 # ============================================================
 
 def main():
 
+    """Spustí systematické hledání šířky a regularizace MLP."""
     parser = argparse.ArgumentParser(
         description=(
             "Grid search for Mantis "

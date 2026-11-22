@@ -1,3 +1,5 @@
+"""Sestavuje validační zprávu o CNN a jejím srovnání s baseline."""
+
 
 from pathlib import Path
 import csv
@@ -29,6 +31,7 @@ METRICS = {
 
 
 def load_json(path):
+    """Bezpečně načte uložený JSON soubor s výsledky."""
     if not path.is_file():
         raise FileNotFoundError(path)
 
@@ -37,6 +40,7 @@ def load_json(path):
 
 
 def load_baseline():
+    """Načte validační metriky logistické regrese."""
     path = DATA / "baseline_validation_metrics.csv"
 
     if not path.is_file():
@@ -66,6 +70,7 @@ def load_baseline():
 
 
 def load_cnn_results():
+    """Načte a ověří výsledky opakovaných běhů CNN."""
     results = []
 
     for seed in SEEDS:
@@ -140,6 +145,7 @@ def load_cnn_results():
 
 
 def verify_dataset():
+    """Ověří počty vzorků a vazbu výsledků na připravená data."""
     views_path = DATA / "full_cnn_views.npz"
     split_path = DATA / "cnn_split_indices.npz"
 
@@ -214,6 +220,7 @@ def verify_dataset():
 
 
 def mean_std(values):
+    """Vypočítá průměr a výběrovou směrodatnou odchylku."""
     values = [float(v) for v in values]
 
     return (
@@ -223,10 +230,12 @@ def mean_std(values):
 
 
 def format_number(value):
+    """Převede numerickou metriku na jednotný textový formát."""
     return f"{float(value):.4f}"
 
 
 def main():
+    """Vytvoří souhrnnou validační zprávu modelu A."""
     print("=" * 70)
     print("TESS - MODEL A VALIDATION REPORT")
     print("=" * 70)

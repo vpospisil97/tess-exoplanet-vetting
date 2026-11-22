@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Propojuje katalogové signály s ověřenými místními FITS soubory."""
+
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -15,6 +17,7 @@ OUT_SUMMARY = DATA / "training_manifest_summary.csv"
 
 
 def normalize_tic(series):
+    """Sjednotí identifikátory TIC napříč zdrojovými tabulkami."""
     return (
         series.astype("string")
         .str.strip()
@@ -24,6 +27,7 @@ def normalize_tic(series):
 
 
 def normalize_path(series):
+    """Sjednotí relativní cesty k datovým souborům."""
     return (
         series.astype("string")
         .str.replace("\\", "/", regex=False)
@@ -33,6 +37,7 @@ def normalize_path(series):
 
 
 def main():
+    """Připraví manifest použitelného trénovacího datasetu."""
     print("=" * 75)
     print("TRAINING MANIFEST - TESS - VERZE 2")
     print("=" * 75)

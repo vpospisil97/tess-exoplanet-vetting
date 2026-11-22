@@ -44,7 +44,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 # ============================================================
-# PATHS AND CONFIGURATION
+# CESTY A KONFIGURACE
 # ============================================================
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -92,6 +92,7 @@ METRICS = (
 
 def load_split(name, expected_count, expected_labels):
 
+    """Načte embeddingy a zkontroluje počty vzorků a tříd."""
     path = FEATURE_DIR / f"features_{name}.npz"
 
     if not path.is_file():
@@ -189,6 +190,9 @@ def load_split(name, expected_count, expected_labels):
 
 def load_data():
 
+    """Načte embeddingy train/validation a zkontroluje jejich návaznost.
+    StandardScaler odhaduje parametry pouze na trénovacích příkladech.
+    """
     train = load_split(
         "train",
         1335,
@@ -271,11 +275,12 @@ def load_data():
 
 
 # ============================================================
-# CLASSIFICATION HEAD
+# KLASIFIKAČNÍ HLAVA
 # ============================================================
 
 def make_model():
 
+    """Sestaví trénovanou MLP hlavu nad 1024rozměrnými embeddingy."""
     return nn.Sequential(
         nn.Linear(
             1024,
@@ -293,11 +298,12 @@ def make_model():
 
 
 # ============================================================
-# METRICS AND PREDICTIONS
+# METRIKY A PREDIKCE
 # ============================================================
 
 def score_metrics(y, probabilities):
 
+    """Vypočítá metriky předpovědí a matici záměn."""
     predictions = (
         probabilities >= CONFIG["threshold"]
     ).astype(np.int64)
@@ -363,6 +369,7 @@ def score_metrics(y, probabilities):
 
 def predict(model, x, device):
 
+    """Získá predikovaná skóre klasifikační hlavy bez gradientů."""
     model.eval()
 
     with torch.inference_mode():
@@ -379,15 +386,17 @@ def predict(model, x, device):
 
 
 # ============================================================
-# SAVED RUNS
+# ULOŽENÉ BĚHY
 # ============================================================
 
 def directory(seed):
+    """Určí adresář artefaktů pro konkrétní seed."""
     return OUTPUT / f"seed_{seed}"
 
 
 def read_completed(seed):
 
+    """Ověří, zda dřívější běh obsahuje všechny artefakty."""
     folder = directory(seed)
 
     metrics_path = folder / "metrics.json"
@@ -428,11 +437,14 @@ def read_completed(seed):
 
 
 # ============================================================
-# TRAIN ONE SEED
+# TRÉNOVÁNÍ JEDNOHO SEEDU
 # ============================================================
 
 def train_seed(seed, train, val, scaler, device):
 
+    """Natrénuje jednu inicializaci klasifikační hlavy na daném seedu.
+    Nejlepší checkpoint vybírá výhradně podle validační AP.
+    """
     folder = directory(seed)
 
     folder.mkdir(
@@ -764,6 +776,7 @@ def train_seed(seed, train, val, scaler, device):
 
 def write_report(results):
 
+    """Sestaví validační srovnání výsledků klasifikační hlavy."""
     REPORT.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -863,11 +876,12 @@ def write_report(results):
 
 
 # ============================================================
-# MAIN
+# HLAVNÍ BĚH
 # ============================================================
 
 def main():
 
+    """Spustí opakované trénování hlavy Mantis pro tři seedy."""
     parser = argparse.ArgumentParser(
         description=(
             "Train Mantis-8M frozen-feature "

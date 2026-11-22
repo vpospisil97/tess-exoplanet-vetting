@@ -1,3 +1,5 @@
+"""Audituje FITS soubory a průběžně ukládá výsledky kontroly kvality."""
+
 
 from pathlib import Path
 import argparse
@@ -43,6 +45,7 @@ REPORT_COLUMNS = [
 
 
 def inspect_fits(path):
+    """Zhodnotí čitelnost, pokrytí a základní statistiky FITS souboru."""
     result = {
         "file": str(path.relative_to(BASE)),
         "status": "unknown",
@@ -273,6 +276,7 @@ def load_existing_report(report_path, available_files):
 
 
 def format_duration(seconds):
+    """Převede délku běhu na čitelný časový údaj."""
     seconds = max(0, int(seconds))
 
     hours, remainder = divmod(seconds, 3600)
@@ -291,6 +295,7 @@ def print_progress(
     processed_this_run,
     started
 ):
+    """Vypíše průběh auditu a zpracovanou část dat."""
     elapsed = time.monotonic() - started
 
     percentage = (
@@ -323,6 +328,7 @@ def print_progress(
 
 
 def print_summary(report):
+    """Shrne počty stavů a statistiky kvality měření."""
     print("\n========== STAVY ==========")
 
     print(
@@ -366,6 +372,7 @@ def print_summary(report):
 
 
 def main():
+    """Spustí pilotní nebo úplný audit kvality FITS."""
     parser = argparse.ArgumentParser()
 
     parser.add_argument(

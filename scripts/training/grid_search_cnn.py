@@ -32,6 +32,7 @@ WEIGHT_DECAY = 0.0001
 
 
 def build_configs():
+    """Vytvoří úplnou mřížku hyperparametrů CNN."""
     configs = []
     for lr, dropout, batch_size in itertools.product(
         LEARNING_RATES, DROPOUTS, BATCH_SIZES
@@ -56,6 +57,7 @@ def build_configs():
 
 
 def load_trainer():
+    """Načte trénovací modul CNN pro izolované běhy."""
     if not TRAIN_SCRIPT.is_file():
         raise FileNotFoundError(TRAIN_SCRIPT)
 
@@ -83,6 +85,7 @@ def load_trainer():
 
 
 def run_trial(trainer, config, trial_dir):
+    """Spustí jednu konfiguraci a oddělí její artefakty."""
     trainer.OUTPUT = trial_dir
 
     args = [
@@ -106,6 +109,7 @@ def run_trial(trainer, config, trial_dir):
 
 
 def read_result(config):
+    """Ověří výsledek již dokončené konfigurace."""
     trial_dir = SEARCH_DIR / config["id"]
     config_file = trial_dir / "trial_config.json"
     metrics_file = trial_dir / f"metrics_seed_{SEED}.json"
@@ -148,6 +152,7 @@ def read_result(config):
 
 
 def rank_results(configs):
+    """Seřadí výsledky podle validační průměrné přesnosti AP."""
     found = [read_result(cfg) for cfg in configs]
     rows = [r for r in found if r is not None]
     return sorted(
@@ -157,6 +162,7 @@ def rank_results(configs):
 
 
 def write_summary(rows, completed, total):
+    """Uloží souhrn grid search do tabulky a dokumentace."""
     SEARCH_DIR.mkdir(parents=True, exist_ok=True)
     csv_path = SEARCH_DIR / "grid_results.csv"
 
@@ -226,6 +232,7 @@ def write_summary(rows, completed, total):
 
 
 def main():
+    """Provede reprodukovatelné ladění hyperparametrů CNN."""
     parser = argparse.ArgumentParser(description="Model A - safe CNN grid search")
     parser.add_argument(
         "--max-trials", type=int, default=None,

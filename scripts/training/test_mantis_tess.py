@@ -115,6 +115,7 @@ def prepare_view(data):
 
 
 def main():
+    """Ověří inference předtrénovaného Mantis na trénovacích datech."""
     print("=" * 70)
     print("MODEL B - MANTIS ON REAL TESS DATA")
     print("=" * 70)

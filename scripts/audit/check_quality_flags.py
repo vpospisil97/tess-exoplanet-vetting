@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Kontroluje příznaky kvality fotometrických měření."""
+
+from pathlib import Path
 import numpy as np
 from astropy.io import fits
 

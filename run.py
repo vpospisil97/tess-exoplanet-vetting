@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Spouštěč projektových skriptů se zachováním původních cest."""
+
+from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parent
@@ -6,6 +8,7 @@ SCRIPTS = ROOT / "scripts"
 
 
 def available_scripts():
+    """Zmapuje dostupné Python skripty podle názvu souboru."""
     result = {}
 
     for path in SCRIPTS.rglob("*.py"):
@@ -15,6 +18,7 @@ def available_scripts():
 
 
 def main():
+    """Spustí vybraný projektový skript se zachováním starších relativních cest."""
     scripts = available_scripts()
 
     if len(sys.argv) < 2 or sys.argv[1] in (

@@ -39,6 +39,7 @@ METRICS = (
 
 
 def file_hash(path):
+    """Vypočítá SHA-256 otisk vstupního souboru."""
     digest = hashlib.sha256()
 
     with path.open("rb") as stream:
@@ -52,6 +53,7 @@ def file_hash(path):
 
 
 def load_selection():
+    """Načte nejlepší konfiguraci a ověří otisky příznaků."""
     if not SELECTION_FILE.is_file():
         raise FileNotFoundError(SELECTION_FILE)
 
@@ -119,6 +121,7 @@ def load_selection():
 
 
 def read_original(seed):
+    """Načte výsledky původního klasifikátoru pro daný seed."""
     path = (
         ORIGINAL_DIR
         / f"seed_{seed}"
@@ -144,6 +147,7 @@ def read_original(seed):
 
 
 def stat(results, metric):
+    """Vypočítá průměr a výběrovou směrodatnou odchylku."""
     values = [
         r["validation"][metric]
         for r in results
@@ -156,11 +160,13 @@ def stat(results, metric):
 
 
 def fmt_stats(results, metric):
+    """Naformátuje souhrn metrik pro dokumentaci."""
     mean, std = stat(results, metric)
     return f"{mean:.4f} ± {std:.4f}"
 
 
 def write_outputs(name, config, tuned, original):
+    """Uloží porovnání vyladěné a původní klasifikační hlavy."""
     summary = {
         "model": "frozen_Mantis-8M_plus_MLP",
         "selected_trial": name,
@@ -284,6 +290,7 @@ def write_outputs(name, config, tuned, original):
 
 
 def main():
+    """Ověří a porovná tři běhy vybrané MLP konfigurace."""
     print("=" * 72)
     print("MODEL B - GRID-SELECTED HEAD, THREE SEEDS")
     print("=" * 72)

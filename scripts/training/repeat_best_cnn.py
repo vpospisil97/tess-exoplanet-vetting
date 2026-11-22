@@ -61,6 +61,7 @@ METRICS = (
 
 
 def select_configuration():
+    """Vybere nejlepší hyperparametry CNN podle validace."""
     if not GRID_CSV.is_file():
         raise FileNotFoundError(GRID_CSV)
 
@@ -107,6 +108,7 @@ def select_configuration():
 
 
 def read_run(directory, config, seed):
+    """Načte a zkontroluje opakovaný běh CNN."""
     path = directory / f"metrics_seed_{seed}.json"
 
     if not path.is_file():
@@ -159,6 +161,7 @@ def read_run(directory, config, seed):
 
 
 def read_original(seed):
+    """Načte výsledky původní CNN pro srovnání."""
     path = (
         ORIGINAL_DIR
         / f"metrics_seed_{seed}.json"
@@ -185,6 +188,7 @@ def read_original(seed):
 
 
 def summary_stats(results, metric):
+    """Vypočítá průměr a výběrovou odchylku běhů."""
     values = [
         float(result["validation"][metric])
         for result in results
@@ -202,6 +206,7 @@ def write_report(
     winner,
     tuned_results,
 ):
+    """Sestaví zprávu porovnávající původní a laděnou CNN."""
     original_results = [
         read_original(seed)
         for seed in SEEDS
@@ -326,6 +331,7 @@ def write_report(
 
 
 def main():
+    """Opakuje vybranou konfiguraci CNN pro tři seedy."""
     parser = argparse.ArgumentParser(
         description="Repeat best TESS CNN configuration"
     )

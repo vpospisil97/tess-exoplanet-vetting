@@ -44,7 +44,7 @@ from mantis.trainer import MantisTrainer
 
 
 # ============================================================
-# CONFIGURATION
+# KONFIGURACE
 # ============================================================
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -89,32 +89,13 @@ EXPECTED_LABEL_COUNTS = {
 
 
 # ============================================================
-# PREPROCESSING
+# PŘEDZPRACOVÁNÍ
 # ============================================================
 
 def prepare_view(data):
-    """
-    Convert a TESS light-curve view into
-    Mantis-compatible input.
-
-    Input:
-        (N, sequence_length, 2)
-
-    Channel 0:
-        Flux
-
-    Channel 1:
-        Coverage mask
-
-    The pilot Model B uses the flux channel only.
-
-    Processing:
-        1. Select flux
-        2. Apply arcsinh(flux / 5)
-        3. Linearly resize to 512 samples
-
-    Output:
-        (N, 1, 512)
+    """Připraví jeden fázový pohled pro předtrénovaný encoder Mantis.
+    Použije pouze tok, aplikuje transformaci arcsinh a lineárně
+    převede časovou osu na délku 512 vzorků.
     """
 
     if data.ndim != 3:
@@ -170,6 +151,7 @@ def prepare_view(data):
 # ============================================================
 
 def validate_indices(indices, count, name):
+    """Ověří platnost indexů a nepřekryvnost vzorků."""
     indices = np.asarray(
         indices,
         dtype=np.int64,
@@ -200,6 +182,7 @@ def validate_indices(indices, count, name):
 
 
 def load_dataset():
+    """Načte připravené pohledy a zkontroluje jejich rozdělení."""
     print("\nLoading dataset...")
 
     if not INPUT.is_file():
@@ -397,6 +380,9 @@ def load_dataset():
 # ============================================================
 
 def load_mantis():
+    """Načte zamrazený předtrénovaný checkpoint Mantis-8M.
+    Konfigurace určuje vrstvu pro extrakci časověřadových reprezentací.
+    """
     print("\nLoading pretrained Mantis...")
 
     network = MantisV1(
@@ -428,6 +414,7 @@ def load_mantis():
 
 
 def extract_features(trainer, inputs, name):
+    """Extrahuje a zkontroluje embeddingy ze zmrazeného modelu Mantis."""
     print(f"\nExtracting {name} embeddings...")
 
     print("Input shape:", inputs.shape)
@@ -493,6 +480,7 @@ def process_split(
     data,
     trainer,
 ):
+    """Vypočítá lokální a globální embeddingy zvolené množiny."""
     print()
     print("=" * 70)
     print(f"PROCESSING: {name.upper()}")
@@ -603,6 +591,7 @@ def process_split(
 # ============================================================
 
 def save_report(summary):
+    """Uloží technický protokol extrakce příznaků."""
     REPORT.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -703,10 +692,11 @@ def save_report(summary):
 
 
 # ============================================================
-# MAIN
+# HLAVNÍ BĚH
 # ============================================================
 
 def main():
+    """Získá trénovací a validační reprezentace Mantis."""
     print("=" * 70)
     print("MODEL B - MANTIS FULL FEATURE EXTRACTION")
     print("=" * 70)

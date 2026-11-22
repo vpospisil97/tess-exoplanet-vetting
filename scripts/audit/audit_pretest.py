@@ -31,11 +31,13 @@ SEEDS = (42, 123, 2026)
 
 
 def check(condition, message):
+    """Vyvolá chybu, pokud není splněna auditovaná podmínka."""
     if not condition:
         raise RuntimeError(message)
 
 
 def sha256(path):
+    """Vypočítá otisk SHA-256 kontrolovaného souboru."""
     digest = hashlib.sha256()
 
     with path.open("rb") as stream:
@@ -48,6 +50,7 @@ def sha256(path):
 
 
 def main():
+    """Ověří dataset, splity a uložené checkpointy před testem."""
     print("=" * 70)
     print("TESS - FINAL PRETEST AUDIT")
     print("=" * 70)

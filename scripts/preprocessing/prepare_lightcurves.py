@@ -1,3 +1,5 @@
+"""Připravuje světelné křivky v samostatné pilotní větvi pipeline."""
+
 
 from pathlib import Path
 
@@ -40,6 +42,7 @@ CLIP_LIMIT = 10.0
 # ============================================================
 
 def normalize_tic(value):
+    """Sjednotí hvězdný identifikátor TIC."""
     text = str(value).strip()
 
     if text.startswith("TIC_"):
@@ -52,10 +55,12 @@ def normalize_tic(value):
 
 
 def number(value):
+    """Bezpečně převede katalogovou hodnotu na číslo."""
     return pd.to_numeric(value, errors="coerce")
 
 
 def read_reference(hdul):
+    """Získá časovou referenci z FITS hlaviček."""
     for header in (hdul[1].header, hdul[0].header):
         ref_i = header.get("BJDREFI")
         ref_f = header.get("BJDREFF")
@@ -67,6 +72,7 @@ def read_reference(hdul):
 
 
 def robust_scale(values):
+    """Získá robustní škálu variability pomocí mediánu a MAD."""
     median = np.median(values)
     mad = np.median(np.abs(values - median))
 
@@ -75,6 +81,7 @@ def robust_scale(values):
 
 def prepare_one(row, signals_by_uid):
 
+    """Vyčistí a připraví pozorování jednoho pilotního signálu."""
     tic = normalize_tic(row["tic_id"])
     uid = str(row["signal_uid"])
     label = str(row["signal_label"])
@@ -359,6 +366,7 @@ def prepare_one(row, signals_by_uid):
 
 def main():
 
+    """Vytvoří pilotní světelné křivky a souhrn přípravy."""
     print("=" * 70)
     print("PRIPRAVA SVETELNYCH KRIVEK PRO DEEP LEARNING")
     print("=" * 70)

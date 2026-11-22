@@ -1,3 +1,5 @@
+"""Připravuje úplný manifest dostupných signálů a FITS souborů."""
+
 
 from pathlib import Path
 import shutil
@@ -37,6 +39,7 @@ LABELS = [
 
 
 def normalize_tic(value):
+    """Sjednotí identifikátor TIC v katalogových datech."""
     if pd.isna(value):
         return ""
 
@@ -52,6 +55,7 @@ def normalize_tic(value):
 
 
 def main():
+    """Vytvoří manifest signálů a adres FITS pro úplný dataset."""
     print("=" * 70)
     print("SESTAVENI KOMPLETNIHO TESS MANIFESTU")
     print("=" * 70)
@@ -189,6 +193,7 @@ def main():
 
     # Bezpecnostni kontrola relativnich cest.
     def safe_path(value):
+        """Ověří, zda relativní cesta FITS neobsahuje zakázané segmenty."""
         path = Path(value.replace("\\", "/"))
 
         return (

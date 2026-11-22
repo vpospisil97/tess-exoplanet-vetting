@@ -20,11 +20,13 @@ LABELS = ("confirmed", "false_positive")
 
 
 def check(condition, message):
+    """Ukončí audit při porušení požadované integrity dat."""
     if not condition:
         raise RuntimeError(message)
 
 
 def read_table(path, required):
+    """Načte CSV a ověří přítomnost požadovaných sloupců."""
     check(path.is_file(), f"Chybi vstupni soubor: {path}")
     frame = pd.read_csv(
         path,
@@ -51,6 +53,7 @@ def read_table(path, required):
 
 
 def is_true(column):
+    """Sjednotí textové příznaky logických hodnot."""
     return (
         column.astype("string")
         .str.strip()
@@ -61,6 +64,7 @@ def is_true(column):
 
 
 def counts(ids, source_labels):
+    """Vrátí počty signálů podle katalogové třídy."""
     labels = source_labels.loc[list(ids)]
     return (
         len(ids),
@@ -70,6 +74,7 @@ def counts(ids, source_labels):
 
 
 def main():
+    """Zrekonstruuje a ověří jednotlivé kroky výběru signálů."""
     print("=" * 72)
     print("TESS - AUDIT VYBERU SIGNALU")
     print("=" * 72)

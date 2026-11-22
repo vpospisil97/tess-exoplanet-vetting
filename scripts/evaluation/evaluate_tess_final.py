@@ -63,11 +63,13 @@ SCRIPTS = ROOT / "scripts" / "training"
 
 
 def require(condition, message):
+    """Ověří podmínku a při jejím porušení zastaví vyhodnocení."""
     if not condition:
         raise RuntimeError(message)
 
 
 def hash_file(path):
+    """Vypočítá kontrolní otisk SHA-256 zdrojového souboru."""
     require(path.is_file(), f"Missing file: {path}")
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -77,6 +79,7 @@ def hash_file(path):
 
 
 def load_module(name, filename):
+    """Načte již existující trénovací modul pro opakování inference."""
     path = SCRIPTS / filename
     require(path.is_file(), f"Missing trainer source: {path}")
     spec = importlib.util.spec_from_file_location(name, path)
@@ -89,6 +92,7 @@ def load_module(name, filename):
 
 
 def audit_dataset():
+    """Zkontroluje uložené vstupy a nepřekryvnost TIC mezi množinami."""
     for key, path in (("views", VIEWS), ("splits", SPLITS)):
         actual = hash_file(path)
         require(actual == EXPECTED_HASHES[key],
@@ -125,6 +129,7 @@ def audit_dataset():
 
 
 def selected_head_config():
+    """Načte finální konfiguraci MLP vybranou na validaci."""
     selection = json.loads(SELECTION.read_text(encoding="utf-8"))
     config = selection["config"]
     require(selection["selected_trial"] == "hidden_128__drop_0p5" and
@@ -140,6 +145,7 @@ def selected_head_config():
 
 
 def checkpoint_files():
+    """Sestaví seznam artefaktů potřebných pro finální vyhodnocení."""
     files = [VIEWS, SPLITS, BASELINE, SELECTION, TRAIN_FEATURES,
              VALIDATION_FEATURES]
     files += [SCRIPTS / name for name in
@@ -151,6 +157,7 @@ def checkpoint_files():
 
 
 def read_validation_csv(path, data, probabilities, column):
+    """Zkontroluje reprodukci pravděpodobností uložených při validaci."""
     require(path.is_file(), f"Missing validation predictions: {path}")
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         rows = list(csv.DictReader(handle))
@@ -176,6 +183,7 @@ def read_validation_csv(path, data, probabilities, column):
 
 
 def scores(y, prob):
+    """Vypočítá klasifikační metriky a matici záměn."""
     require(len(y) == len(prob) and np.isfinite(prob).all(),
             "Invalid model probabilities")
     require(np.all((prob >= 0) & (prob <= 1)), "Scores outside [0, 1]")
@@ -194,11 +202,13 @@ def scores(y, prob):
 
 
 def synchronize(device):
+    """Před časovým měřením synchronizuje zařízení CUDA."""
     if device.type == "cuda":
         torch.cuda.synchronize(device)
 
 
 def predict_baseline(data, split, baseline_module):
+    """Vypočítá predikce uložené logistické regrese."""
     stored = joblib.load(BASELINE)  # User's own trained, trusted file only.
     require(stored.get("feature_count") == 604 and
             stored.get("label_1") == "confirmed", "Wrong baseline metadata")
@@ -220,6 +230,7 @@ def predict_baseline(data, split, baseline_module):
 
 
 def predict_cnn(data, split, cnn, device):
+    """Vyhodnotí tři zmrazené checkpointy CNN na určené množině."""
     idx = data["idx"][split]
     local = cnn.prepare_view(data["local"][idx])
     glob = cnn.prepare_view(data["global"][idx])
@@ -255,6 +266,7 @@ def predict_cnn(data, split, cnn, device):
 
 
 def load_head(seed, head, config, device):
+    """Načte váhy MLP hlavy a její trénovací standardizační statistiky."""
     path = HEAD_DIR / f"seed_{seed}" / "best_head.pt"
     # Saved scaler_mean/scaler_scale are NumPy arrays. The original trusted
     # project checkpoint therefore requires weights_only=False.
@@ -274,6 +286,7 @@ def load_head(seed, head, config, device):
 
 
 def predict_heads(features, split, data, head, config, device):
+    """Vyhodnotí opakované MLP hlavy nad příznaky Mantis."""
     require(features.shape == (len(data["idx"][split]), 1024) and
             np.isfinite(features).all(), f"Invalid {split} Mantis features")
     results = {}
@@ -300,6 +313,7 @@ def predict_heads(features, split, data, head, config, device):
 
 
 def mantis_features(data, split, extractor, trainer):
+    """Extrahuje reprezentace obou pohledů pomocí Mantis pro zvolený split."""
     idx = data["idx"][split]
     if split == "validation":
         idx = idx[:16]
@@ -327,6 +341,7 @@ def mantis_features(data, split, extractor, trainer):
 
 def load_mantis(extractor, device):
     # Exact pretrained encoder settings from extract_mantis_features.py.
+    """Načte přesnou konfiguraci zamrazeného encoderu Mantis."""
     extractor.DEVICE = device.type
     require(extractor.CHECKPOINT == "paris-noah/Mantis-8M" and
             extractor.LENGTH == 512, "Mantis source configuration changed")
@@ -337,6 +352,7 @@ def load_mantis(extractor, device):
 
 
 def preflight(data, cnn, base, head, extractor, device, config):
+    """Ověří reprodukci validačních predikcí před jednorázovým testem."""
     require(not LOCK.exists(), "Test was already started; no new preflight")
     print("\nPRE-FLIGHT: VALIDATION ONLY; no test predictions")
     fingerprints = checkpoint_files()
@@ -371,6 +387,7 @@ def preflight(data, cnn, base, head, extractor, device, config):
 
 
 def summarize(results, data, timings, device):
+    """Uloží testovací metriky, predikce a časy inference."""
     y = data["y"][data["idx"]["test"]]
     records = []
     for name, run in results.items():
@@ -445,6 +462,7 @@ def summarize(results, data, timings, device):
 
 
 def final_test(data, cnn, base, head, extractor, device, config):
+    """Provede jednorázové testování zmrazených modelů po preflightu."""
     require(PREFLIGHT.is_file(), "Run --preflight successfully first")
     require(not LOCK.exists(), "Test already started. Do not rerun automatically")
     require(not REPORT.exists(), "Final report already exists — do not rerun")
@@ -481,6 +499,7 @@ def final_test(data, cnn, base, head, extractor, device, config):
 
 
 def main():
+    """Vybere validační předkontrolu nebo finální test podle argumentů."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--test", action="store_true")

@@ -1,3 +1,5 @@
+"""Kontroluje tranzitní signály a jejich fázované světelné křivky."""
+
 
 from pathlib import Path
 

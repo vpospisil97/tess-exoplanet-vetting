@@ -1,3 +1,5 @@
+"""Shrnuje pokrytí tranzitů pro další výběr signálů."""
+
 
 from pathlib import Path
 
@@ -13,6 +15,7 @@ OUTPUT = DATA / "transit_coverage_flags.csv"
 
 
 def main():
+    """Shrne výsledky kontroly časového pokrytí tranzitů."""
     print("=" * 70)
     print("TESS - ZAVERECNA KONTROLA POKRYTI")
     print("=" * 70)

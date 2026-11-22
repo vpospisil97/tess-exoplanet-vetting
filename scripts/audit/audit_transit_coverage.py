@@ -1,3 +1,5 @@
+"""Měří časové pokrytí tranzitů v dostupných FITS pozorováních."""
+
 
 from pathlib import Path
 from collections import defaultdict
@@ -24,6 +26,7 @@ BJD_OFFSET = 2457000.0
 
 
 def normalize_path(value):
+    """Sjednotí zápis cest k FITS pro porovnávání souborů."""
     if pd.isna(value):
         return ""
 
@@ -31,6 +34,7 @@ def normalize_path(value):
 
 
 def find_fits_path(value):
+    """Vyhledá lokální FITS odpovídající uvedené cestě."""
     raw = str(value).replace("\\", "/").strip()
     path = Path(raw)
 
@@ -62,6 +66,7 @@ def find_fits_path(value):
 
 
 def load_times(path):
+    """Načte časová měření z použitelných FITS záznamů."""
     with fits.open(path, memmap=True) as hdul:
         for hdu in hdul:
             data = hdu.data
@@ -146,6 +151,7 @@ def count_transit_points(
     period,
     duration_hours,
 ):
+    """Spočítá měření během tranzitu a blízká měření mimo něj."""
     if len(times) == 0:
         return 0, 0
 
@@ -172,6 +178,7 @@ def count_transit_points(
 
 
 def main():
+    """Vyhodnotí dostatečnost pozorování každého tranzitu."""
     print("=" * 72)
     print("TESS - KONTROLA POKRYTI TRANZITU")
     print("=" * 72)

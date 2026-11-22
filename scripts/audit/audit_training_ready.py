@@ -1,3 +1,5 @@
+"""Kontroluje připravenost katalogových záznamů pro trénování."""
+
 
 from pathlib import Path
 
@@ -15,6 +17,7 @@ CROSSTAB = OUTPUT / "training_ready_labels.csv"
 
 
 def main():
+    """Zkontroluje katalogové podmínky použitelnosti pro trénování."""
     signals = pd.read_csv(
         SIGNALS,
         low_memory=False

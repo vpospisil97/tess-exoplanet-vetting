@@ -1,4 +1,6 @@
-﻿from pathlib import Path
+﻿"""Provádí diagnostiku jednotlivých kroků čištění světelných křivek."""
+
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -26,6 +28,7 @@ FILES = [
 
 
 def load_fits(path, flux_column):
+    """Načte tok, čas a kvalitu z určeného FITS."""
     with fits.open(path, memmap=False) as hdul:
         for hdu in hdul:
             if not isinstance(
@@ -69,6 +72,7 @@ def load_fits(path, flux_column):
 
 
 def analyze(tic, filename, flux_column):
+    """Zhodnotí průběh předzpracování jedné světelné křivky."""
     path = FITS_DIR / tic / filename
 
     time, flux, quality = load_fits(path, flux_column)
@@ -258,6 +262,7 @@ def analyze(tic, filename, flux_column):
 
 
 def main():
+    """Spustí diagnostiku na předem vybraných příkladech."""
     for tic, filename, flux_column in FILES:
         analyze(tic, filename, flux_column)
 

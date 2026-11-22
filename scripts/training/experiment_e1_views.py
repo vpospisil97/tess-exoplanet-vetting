@@ -70,6 +70,7 @@ FIELDS = (
 
 
 def configuration(mode, seed):
+    """Sestaví nastavení konkrétního běhu experimentu E1."""
     return {
         "id": f"e1_{mode}_seed_{seed}",
         "mode": mode,
@@ -85,6 +86,7 @@ def configuration(mode, seed):
 
 
 def trial_directory(mode, seed):
+    """Určí adresář výsledků dané varianty a seedu."""
     return (
         OUTPUT
         / mode
@@ -93,6 +95,7 @@ def trial_directory(mode, seed):
 
 
 def get_result(mode, seed):
+    """Načte a zkontroluje uložený výsledek běhu E1."""
     directory = trial_directory(mode, seed)
 
     config_path = (
@@ -205,6 +208,7 @@ def make_model_class(original_class, mode):
 
         def forward(self, local, global_view):
 
+            """Před výpočtem CNN vynuluje nepoužitý pohled."""
             if mode == "local_only":
                 global_view = torch.zeros_like(
                     global_view
@@ -224,6 +228,7 @@ def make_model_class(original_class, mode):
 
 
 def write_results(rows):
+    """Uloží metriky jednotlivých běhů do CSV."""
     OUTPUT.mkdir(
         parents=True,
         exist_ok=True,
@@ -249,6 +254,7 @@ def write_results(rows):
 
 
 def average_and_sd(rows, mode, metric):
+    """Vypočítá průměr a výběrovou odchylku dané metriky."""
     values = [
         row[metric]
         for row in rows
@@ -267,6 +273,7 @@ def average_and_sd(rows, mode, metric):
 
 
 def generate_report(rows):
+    """Sestaví srovnávací zprávu experimentu E1."""
     lines = [
         "# Experiment E1 - Local vs Global Transit Views",
         "",
@@ -436,6 +443,7 @@ def generate_report(rows):
 
 
 def main():
+    """Provede varianty E1 při stejném dělení a nastavení CNN."""
     parser = argparse.ArgumentParser(
         description="E1: local/global TESS CNN ablation"
     )

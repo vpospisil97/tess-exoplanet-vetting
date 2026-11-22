@@ -56,6 +56,7 @@ THRESHOLD = 0.5
 
 
 def load_reference():
+    """Načte validační signály a jejich identifikátory."""
     path = DATA / "features_validation.npz"
 
     with np.load(path, allow_pickle=False) as data:
@@ -96,6 +97,7 @@ def read_predictions(
     tic,
     labels,
 ):
+    """Načte předpovědi a ověří jejich návaznost na validační signály."""
     if not path.is_file():
         raise FileNotFoundError(path)
 
@@ -176,6 +178,7 @@ def read_predictions(
 
 
 def evaluate(labels, probabilities):
+    """Vypočítá chyby a matici záměn při stanoveném prahu."""
     predictions = (
         probabilities >= THRESHOLD
     ).astype(int)
@@ -213,6 +216,7 @@ def evaluate(labels, probabilities):
 
 
 def main():
+    """Porovná opakované validační chyby modelu Mantis."""
     print("=" * 70)
     print("MODEL B - VALIDATION ERROR ANALYSIS")
     print("=" * 70)

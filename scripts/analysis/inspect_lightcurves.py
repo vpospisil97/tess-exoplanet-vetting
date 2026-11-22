@@ -1,3 +1,5 @@
+"""Prohlíží pilotní světelné křivky a jejich základní charakteristiky."""
+
 
 from pathlib import Path
 

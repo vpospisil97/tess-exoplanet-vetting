@@ -1,3 +1,5 @@
+"""Vytváří lokální a globální fázové vstupy pro klasifikaci TESS."""
+
 
 from pathlib import Path
 from collections import defaultdict
@@ -24,6 +26,7 @@ MIN_PER_BIN = 3
 
 
 def boolean(series):
+    """Převede textový sloupec na logické příznaky."""
     return (
         series.astype("string")
         .str.strip()
@@ -34,6 +37,7 @@ def boolean(series):
 
 
 def find_file(value):
+    """Najde skutečnou cestu k FITS uvedenému v metadatech."""
     raw = str(value).strip().replace("\\", "/")
     path = Path(raw)
 
@@ -61,6 +65,7 @@ def find_file(value):
 
 
 def load_fits(path):
+    """Načte použitelná měření z FITS souboru a uplatní kontrolu kvality."""
     with fits.open(path, memmap=True) as hdul:
         for hdu in hdul:
             data = hdu.data
@@ -149,6 +154,7 @@ def load_fits(path):
 
 
 def get_phases(time, epoch, period):
+    """Převede časová měření na fázi vzhledem k epoše a oběžné periodě."""
     phase_days = (
         (time - epoch + period / 2) % period
     ) - period / 2
@@ -157,6 +163,7 @@ def get_phases(time, epoch, period):
 
 
 def bin_median(x, y, left, right, bins):
+    """Agreguje fázovanou světelnou křivku mediánem do pravidelných intervalů."""
     edges = np.linspace(
         left,
         right,
@@ -238,6 +245,10 @@ def bin_median(x, y, left, right, bins):
 
 
 def make_example(row, filenames):
+    """Sestaví lokální a globální pohled na jeden katalogový signál.
+    Kontroluje efemeridu, filtruje použitelná měření, odstraňuje
+    duplicitní časy a vyhodnocuje pokrytí fázových intervalů.
+    """
     period = float(row["period_days"])
     epoch = float(row["epoch_bjd"])
 
@@ -415,6 +426,7 @@ def make_example(row, filenames):
 
 
 def main():
+    """Připraví fázové vstupy a uloží kontrolované příklady pro CNN."""
     parser = argparse.ArgumentParser(
         description=(
             "Prepare two-view pilot inputs "

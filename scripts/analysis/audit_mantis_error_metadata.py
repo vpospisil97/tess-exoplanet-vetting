@@ -76,6 +76,7 @@ TEXT_FIELDS = (
 
 
 def normalize_tic(value):
+    """Sjednotí identifikátory TIC pro bezpečné propojení tabulek."""
     if pd.isna(value):
         return ""
 
@@ -91,6 +92,7 @@ def normalize_tic(value):
 
 
 def load_errors():
+    """Načte záznamy validačních chyb z předchozí analýzy."""
     if not ERRORS.is_file():
         raise FileNotFoundError(ERRORS)
 
@@ -131,6 +133,7 @@ def load_errors():
 
 
 def select_errors(errors):
+    """Vybere opakovaně chybné pozitivní a negativní příklady."""
     fp = errors[
         (errors["true_label"] == 0)
         & (errors["tuned_errors_out_of_3"] == 3)
@@ -164,6 +167,7 @@ def select_errors(errors):
 
 
 def load_signals():
+    """Načte zdrojová katalogová metadata signálů."""
     if not SIGNALS.is_file():
         raise FileNotFoundError(
             f"Metadata file not found: {SIGNALS}"
@@ -223,6 +227,7 @@ def load_signals():
 
 
 def audit(selected, signals):
+    """Propojí vybrané chyby s jejich katalogovými charakteristikami."""
     records = []
 
     for _, example in selected.iterrows():
@@ -304,6 +309,7 @@ def audit(selected, signals):
 
 
 def save_report(result):
+    """Uloží tabulku a textový protokol kontroly metadat."""
     REPORT.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -403,6 +409,7 @@ def save_report(result):
 
 
 def main():
+    """Spustí katalogový audit vybraných validačních chyb."""
     print("=" * 72)
     print("MODEL B - CORRECTED METADATA AUDIT")
     print("=" * 72)

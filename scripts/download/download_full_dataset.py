@@ -1,3 +1,5 @@
+"""Stahuje vybrané FITS soubory s logováním a kontrolou disku."""
+
 from __future__ import annotations
 
 import argparse
@@ -43,6 +45,7 @@ LOG_FIELDS = [
 
 
 def parse_args():
+    """Načte argumenty pro bezpečné hromadné stahování."""
     parser = argparse.ArgumentParser(
         description="TESS FITS downloader"
     )
@@ -64,6 +67,7 @@ def parse_args():
 
 
 def ensure_log():
+    """Připraví soubor protokolu stažených dat."""
     LOG_FILE.parent.mkdir(
         parents=True,
         exist_ok=True
@@ -88,6 +92,7 @@ def log_result(
     size_bytes=0,
     message=""
 ):
+    """Zapíše výsledek jednoho pokusu o stažení."""
     with LOG_FILE.open(
         "a",
         newline="",
@@ -107,6 +112,7 @@ def log_result(
 
 
 def validate_fits(path):
+    """Ověří strukturu staženého souboru FITS."""
     try:
         with fits.open(
             path,
@@ -148,6 +154,7 @@ def validate_fits(path):
 
 
 def free_gib():
+    """Zjistí aktuální volné místo na pracovním disku v GiB."""
     return (
         shutil.disk_usage(BASE).free
         / (1024 ** 3)
@@ -155,6 +162,7 @@ def free_gib():
 
 
 def pilot_file(hf_path):
+    """Najde případnou existující kopii souboru z pilotního vzorku."""
     path = PILOT / hf_path
 
     if path.is_file():
@@ -169,6 +177,7 @@ def download_one(
     destination,
     min_free_gib
 ):
+    """Stáhne a zkontroluje jeden soubor při dodržení diskové rezervy."""
     destination.parent.mkdir(
         parents=True,
         exist_ok=True
@@ -247,6 +256,7 @@ def download_one(
 
 
 def main():
+    """Stáhne vybrané FITS a zaznamená úspěchy i chyby."""
     args = parse_args()
 
     if not MANIFEST.exists():

@@ -73,6 +73,7 @@ def feature_ablation_class(original_class, mode):
 
         def forward(self, local, global_view):
 
+            """Vypočítá predikci se zapojením zvolených příznaků."""
             local_features = self.local_encoder(
                 local
             )
@@ -109,6 +110,7 @@ def feature_ablation_class(original_class, mode):
 
 
 def create_report(rows):
+    """Uloží validační výsledky ablace příznaků E1."""
     REPORT.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -296,9 +298,11 @@ def create_report(rows):
 
 
 def main():
+    """Spustí ablační experiment lokálních a globálních příznaků."""
     original_configuration = e1.configuration
 
     def tagged_configuration(mode, seed):
+        """Označí konfiguraci experimentu podle varianty a seedu."""
         config = original_configuration(
             mode,
             seed,

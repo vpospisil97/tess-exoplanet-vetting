@@ -1,3 +1,5 @@
+"""Trénuje vlastní dvouvětvovou jednorozměrnou konvoluční síť."""
+
 
 from pathlib import Path
 import argparse
@@ -46,6 +48,7 @@ GLOBAL_LENGTH = 201
 
 
 def set_seed(seed):
+    """Nastaví náhodná semena Pythonu, NumPy a PyTorche."""
     random.seed(seed)
     np.random.seed(seed)
 
@@ -59,6 +62,7 @@ def set_seed(seed):
 
 
 def load_data():
+    """Načte fázové pohledy a oddělené indexy trénování a validace."""
     if not INPUT.exists():
         raise FileNotFoundError(INPUT)
 
@@ -143,15 +147,9 @@ def load_data():
 
 
 def prepare_view(view):
-    """
-    Input format:
-      channel 0 = relative flux
-      channel 1 = coverage mask
-
-    Convert flux to parts per thousand (ppt)
-    and apply a fixed smooth transformation.
-
-    No statistics from validation/test are used.
+    """Převede relativní tok na transformovaný vstup pro konvoluční síť.
+    První kanál obsahuje transformovaný tok, druhý masku pokrytí.
+    Transformace neodhaduje statistiky z validační ani testovací množiny.
     """
     flux = view[:, :, 0]
     mask = view[:, :, 1]
@@ -188,11 +186,10 @@ def prepare_view(view):
 
 
 class ConvEncoder(nn.Module):
-    """
-    One-dimensional CNN encoder for one view.
-    """
+    """Extrahuje příznaky jednoho fázového pohledu pomocí 1D konvolucí."""
 
     def __init__(self):
+        """Sestaví konvoluční vrstvy a adaptivní pooling."""
         super().__init__()
 
         self.features = nn.Sequential(
@@ -229,6 +226,7 @@ class ConvEncoder(nn.Module):
         self.max_pool = nn.AdaptiveMaxPool1d(1)
 
     def forward(self, x):
+        """Převede časovou řadu na kombinované průměrné a maximální příznaky."""
         x = self.features(x)
 
         average = self.avg_pool(x).squeeze(-1)
@@ -241,12 +239,12 @@ class ConvEncoder(nn.Module):
 
 
 class TessCNN(nn.Module):
-    """
-    Model A: two-branch 1D CNN.
-    Trained from random initialization.
+    """Klasifikuje tranzitní signál pomocí dvou samostatných větví CNN.
+    Obě větve se učí od náhodné inicializace a sdílejí výstupní hlavu.
     """
 
     def __init__(self, dropout=0.30):
+        """Sestaví dvojici encoderů a klasifikační MLP hlavu."""
         super().__init__()
 
         self.local_encoder = ConvEncoder()
@@ -261,6 +259,7 @@ class TessCNN(nn.Module):
         )
 
     def forward(self, local, global_view):
+        """Spojí příznaky lokálního a globálního pohledu a vypočítá logit."""
         a = self.local_encoder(local)
         b = self.global_encoder(global_view)
 
@@ -275,6 +274,7 @@ class TessCNN(nn.Module):
 
 
 def metrics_from_probabilities(y, p):
+    """Vypočítá metriky ze skóre a pevného klasifikačního prahu."""
     predicted = (
         p >= 0.5
     ).astype(np.int64)
@@ -322,6 +322,7 @@ def metrics_from_probabilities(y, p):
 
 @torch.inference_mode()
 def evaluate(model, loader, loss_fn, device):
+    """Vyhodnotí síť bez aktualizace vah a shromáždí validační predikce."""
     model.eval()
 
     all_y = []
@@ -383,6 +384,7 @@ def evaluate(model, loader, loss_fn, device):
 
 
 def save_curves(history, path):
+    """Uloží graf trénovací a validační ztráty spolu s validační AP."""
     df = pd.DataFrame(history)
 
     fig, axes = plt.subplots(
@@ -436,6 +438,7 @@ def save_curves(history, path):
 
 
 def main():
+    """Provede trénování CNN s výběrem checkpointu podle validace."""
     parser = argparse.ArgumentParser(
         description="TESS Model A - two-view 1D CNN"
     )

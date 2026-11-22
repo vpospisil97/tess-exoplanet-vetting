@@ -1,3 +1,5 @@
+"""Odhaduje použitelný rozsah dat a zastoupení tříd."""
+
 
 from pathlib import Path
 from collections import Counter
@@ -25,6 +27,7 @@ LABELS = [
 
 
 def normalize_id(value):
+    """Sjednotí katalogové identifikátory pro kontrolu kapacity."""
     if pd.isna(value):
         return ""
 
@@ -40,6 +43,7 @@ def normalize_id(value):
 
 
 def main():
+    """Odhadne počet použitelných signálů a zastoupení tříd."""
     print("=" * 65)
     print("KONTROLA KAPACITY DATASETU TESS")
     print("=" * 65)

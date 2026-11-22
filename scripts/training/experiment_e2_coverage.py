@@ -101,11 +101,12 @@ FIELDS = (
 
 
 # ============================================================
-# CONFIGURATION
+# KONFIGURACE
 # ============================================================
 
 def config_for(mode, seed):
 
+    """Vrátí konfiguraci pro vybranou variantu a seed E2."""
     if mode not in MODES:
         raise ValueError(
             f"Unknown experiment mode: {mode}"
@@ -133,6 +134,7 @@ def config_for(mode, seed):
 
 def trial_directory(mode, seed):
 
+    """Určí adresář výsledků varianty E2."""
     return (
         OUTPUT
         / mode
@@ -171,6 +173,7 @@ def make_model_class(original_class, mode):
 
         def forward(self, local, global_view):
 
+            """Podle varianty předá CNN i masku pokrytí nebo nulový kanál."""
             if mode == "without_mask":
 
                 local_flux = local[:, :1, :]
@@ -215,6 +218,7 @@ def make_model_class(original_class, mode):
 
 def read_run(mode, seed):
 
+    """Načte a zkontroluje výsledky dřívějšího běhu E2."""
     directory = trial_directory(
         mode,
         seed,
@@ -345,6 +349,7 @@ def read_run(mode, seed):
 
 def mean_and_sd(rows, mode, metric):
 
+    """Vypočítá průměr a výběrovou směrodatnou odchylku."""
     values = [
         row[metric]
         for row in rows
@@ -370,6 +375,7 @@ def mean_and_sd(rows, mode, metric):
 
 def save_results(rows):
 
+    """Uloží tabulku naměřených metrik experimentu."""
     OUTPUT.mkdir(
         parents=True,
         exist_ok=True,
@@ -403,6 +409,7 @@ def save_results(rows):
 
 def generate_report(rows):
 
+    """Vytvoří srovnávací dokumentaci s hypotézou a výsledky E2."""
     lines = [
         "# Experiment E2 - Coverage Mask Ablation",
         "",
@@ -596,6 +603,7 @@ def generate_report(rows):
 
 def main():
 
+    """Spustí experiment s maskou pokrytí bez práce s testem."""
     parser = argparse.ArgumentParser(
         description=(
             "Experiment E2: coverage mask "
