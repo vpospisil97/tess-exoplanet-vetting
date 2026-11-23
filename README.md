@@ -2,7 +2,22 @@
 
 Deep Learning semester project: binary classification of **known TESS transit signals** using phase-folded stellar light curves. The study compares a logistic-regression baseline, a custom convolutional neural network (Model A), and a frozen pretrained time-series encoder with a trained classification head (Model B).
 
-**Status:** The original experiment is complete. Final model checkpoints were chosen on validation data; the TIC-disjoint held-out test set was evaluated once, without subsequent retuning.
+**Status:** The original experiment, its one-time TIC-disjoint held-out test, and a supplementary five-fold, TIC-grouped cross-validation (E3) of the baseline, CNN, Mantis head, and E1/E2 ablations are complete. The supplementary CV was performed on development data after model selection; it does **not** replace the original test.
+
+## Final report, presentation and CV results
+
+All final deliverables are stored in [`docs/`](docs/):
+
+| File | Purpose |
+|---|---|
+| [`docs/prezentace.pptx`](docs/prezentace.pptx) | Final 16-slide PowerPoint presentation (editable) |
+| [`docs/TESS_zprava_LaTeX.pdf`](docs/TESS_zprava_LaTeX.pdf) | Final seven-page academic report (PDF) |
+| [`docs/TESS_zprava_LaTeX.tex`](docs/TESS_zprava_LaTeX.tex) | Report source with the requested submission filename |
+| [`docs/latex/main.tex`](docs/latex/main.tex) | Canonical LaTeX source in the existing project layout |
+| [`docs/latex/main.pdf`](docs/latex/main.pdf) | Matching compiled report in the existing LaTeX directory |
+| [`docs/e3_cross_validation.md`](docs/e3_cross_validation.md) | Full E3 numerical results, paired ablation comparisons and methodological limitations |
+
+The `.tex` files contain the same source. For compilation from the repository layout, use `docs/latex/main.tex` with **XeLaTeX** (twice for references); when original figures under `docs/figures/` are unavailable, the source can render its fallback vector figures.
 
 ## Research question and labels
 
@@ -72,6 +87,64 @@ The primary metric is **Average Precision (AP)**. Model selection used validatio
 | Frozen Mantis-8M + MLP | **0.9009 ± 0.0024** | **0.8434 ± 0.0018** | **0.7539 ± 0.0144** | **0.8119 ± 0.0106** |
 
 See [`docs/final_test_results.md`](docs/final_test_results.md) for per-seed results, confusion matrices and runtime. The mean differences should not be interpreted as formal proof of statistical superiority across independent datasets.
+
+## Supplementary 5-fold group cross-validation (E3)
+
+**Purpose:** E3 evaluates sensitivity to the choice of development stars. It reuses the original **1,628 train + validation signals** and leaves all **290 original held-out test signals** separate and unchanged. The five outer folds use `StratifiedGroupKFold` with groups defined by TIC, so the same star never appears in both the training and evaluation portion of a fold. The five evaluation folds contain 317–334 signals each.
+
+The logistic-regression baseline is evaluated once per fold. CNN, the frozen Mantis-8M encoder plus trained head, and each ablation are evaluated for three random seeds (`42`, `123`, `2026`) per fold. Neural models select their epoch on an **inner TIC-separated validation partition**, then restart training on the entire outer training partition before evaluating the untouched outer validation fold. Standardization for baseline/Mantis is fitted within the appropriate outer training partition.
+
+These are **retrospective robustness results**, not an independent, unbiased assessment of hyperparameter selection: hyperparameters were previously tuned on the original validation subset, which now belongs to the CV pool. The displayed sample SD is computed across the **five fold-wise means** (after averaging three seeds within each fold for neural models), not across 15 independent dataset splits.
+
+### E3 model performance
+
+| Model | Average Precision | ROC-AUC | Balanced accuracy | F1 |
+|---|---:|---:|---:|---:|
+| Logistic regression | 0.8016 ± 0.0247 | 0.7114 ± 0.0394 | 0.6726 ± 0.0361 | 0.6756 ± 0.0612 |
+| Custom CNN, both views, with mask | 0.9000 ± 0.0151 | 0.8321 ± 0.0240 | 0.7414 ± 0.0317 | 0.7784 ± 0.0507 |
+| **Frozen Mantis-8M + MLP** | **0.9289 ± 0.0071** | **0.8797 ± 0.0109** | **0.7947 ± 0.0232** | **0.8452 ± 0.0158** |
+
+Mantis achieves a higher mean AP than CNN in **each of the five outer folds**; this does not establish statistical significance on a new population of stars.
+
+### E1 and E2 in E3
+
+| Ablation | CV Average Precision |
+|---|---:|
+| E1 — both local and global views | 0.9000 ± 0.0151 |
+| E1 — local only | 0.8855 ± 0.0266 |
+| E1 — global only | 0.8729 ± 0.0085 |
+| E2 — with coverage mask (same CNN reference runs) | 0.9000 ± 0.0151 |
+| E2 — without explicit coverage mask | 0.9015 ± 0.0152 |
+
+- **E1:** paired ΔAP for both minus local: `+0.0145 ± 0.0148`, with 12/15 positive seed-fold pairs; both minus global: `+0.0271 ± 0.0170`, with 13/15 positive pairs.
+- **E2:** paired ΔAP for with-mask minus without-mask: `−0.0014 ± 0.0040`; with-mask wins in 8/15 pairs. Thus the small positive effect on the original validation split was **not** replicated consistently by CV.
+- The E1 ablations zero the *unused CNN branch representation after the encoder*. The E2 ablation zeroes the mask channel. These are controlled architecture ablations, but the effective capacity of E1 branches differs and zero flux bins may indirectly reveal missing coverage.
+
+Full results: [`docs/e3_cross_validation.md`](docs/e3_cross_validation.md). The original E1/E2 validations and all test scores above remain unchanged.
+
+### E3 reproduction — existing processed data
+
+These scripts require locally available `full_dataset/full_cnn_views.npz`, `full_dataset/cnn_split_indices.npz` and the previously extracted Mantis train/validation embeddings. These large data and checkpoint artifacts remain ignored by Git. **Do not generate the split again or run the original held-out test to reproduce E3.** From the repository root:
+
+```powershell
+# Prepare five TIC-grouped outer folds; original test is excluded.
+python -u .\scripts\training\prepare_e3_folds.py
+
+# Five baseline folds.
+python -u .\scripts\training\cross_validate_baseline.py
+
+# Five outer folds x three seeds each.
+python -u .\scripts\training\cross_validate_cnn.py
+python -u .\scripts\training\cross_validate_mantis.py
+
+# E1 local only, E1 global only, E2 without mask; reuse CNN reference runs.
+python -u .\scripts\training\cross_validate_ablations.py --experiment all
+
+# Regenerate Markdown report from saved metrics.
+python -u .\scripts\training\report_e3_full.py
+```
+
+The scripts support bounded pilots (`--max-folds 1 --max-seeds 1` for neural runs). They skip already completed fold/seed results and store outputs separately under `full_dataset/e3_cross_validation/`. They do **not** overwrite the original training, validation, E1/E2, or held-out-test artifacts.
 
 ## Environment
 
@@ -159,7 +232,7 @@ python -u .\scripts\audit\audit_pretest.py
 
 ## Training and evaluation
 
-The trained model and hyperparameter-search scripts are in `scripts/training/`: `train_baseline.py`, `train_cnn.py`, `grid_search_cnn.py`, `repeat_best_cnn.py`, `extract_mantis_features.py`, `train_mantis_head.py`, `grid_search_mantis_head.py`, and `train_mantis_head_tuned.py`.
+The original training and hyperparameter-search scripts are in `scripts/training/`: `train_baseline.py`, `train_cnn.py`, `grid_search_cnn.py`, `repeat_best_cnn.py`, `extract_mantis_features.py`, `train_mantis_head.py`, `grid_search_mantis_head.py`, and `train_mantis_head_tuned.py`. The six supplementary E3 scripts are `prepare_e3_folds.py`, `cross_validate_baseline.py`, `cross_validate_cnn.py`, `cross_validate_mantis.py`, `cross_validate_ablations.py`, and `report_e3_full.py`.
 
 The original evaluation script is `scripts/evaluation/evaluate_tess_final.py`. Its preflight mode verifies validation predictions and frozen checkpoints. The held-out `--test` mode was already run **exactly once** in the original experiment; it must not be used for further model or threshold selection. See `docs/pretest_audit.md` and `docs/final_test_results.md` instead of rerunning the published test.
 
@@ -180,21 +253,22 @@ scripts/
   audit/                     # FITS audits, transit coverage, integrity
   download/                  # acquisition and download diagnostics
   preprocessing/             # manifests and phase-folded views
-  training/                  # baseline, CNN, Mantis and experiments
+  training/                  # baseline, CNN, Mantis, E1/E2, E3 grouped CV
   analysis/                  # visualization and error analysis
   evaluation/                # frozen final evaluation
-docs/                        # experiment reports and final test metrics
+docs/                        # final PPTX/PDF/TeX, CV report, experiment and test metrics
 ```
 
 ## Limitations and future work
 
 - The labelled set is small and selected; results are not directly representative of real-world TESS candidate-vetting rates.
-- The test contains only 95 catalogue false positives. Evaluation uses one TIC-disjoint split, not independent split replications.
+- The held-out test contains only 95 catalogue false positives. It was evaluated once on one TIC-disjoint split. E3 adds five development-only folds, not additional independent held-out tests.
+- E3 was performed **after** model/hyperparameter selection on the original validation split, so it is a robustness check rather than an unbiased nested-CV estimate of the entire selection procedure.
 - The positive-class prevalence in this curated test is high; AP should be interpreted relative to that prevalence.
 - Classification scores are **not calibrated probabilities** of planet confirmation.
 - TIC grouping limits star overlap within this dataset but cannot exclude every form of source, survey or pretrained-encoder bias.
 - The original HF download URLs use `resolve/main` rather than a pinned source revision, and the current requirements are not a complete dependency lock. Exact source snapshots and data provenance should be archived for stronger reproduction guarantees.
-- The pilot manifest is optional. However, an end-to-end clean-clone reproduction has not yet been performed. Upstream metadata, FITS files, processed arrays and model checkpoints must be obtained or rebuilt separately.
+- The pilot manifest is optional for reconstruction. This README documents the original pipeline but does not claim an end-to-end clean-room rerun has already been performed.
 - Future independent work may rank unconfirmed candidates for follow-up, provided the outputs are not presented as confirmed-planet probabilities or ground-truth evaluation.
 
 ## AI assistance

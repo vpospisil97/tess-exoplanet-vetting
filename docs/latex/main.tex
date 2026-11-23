@@ -1,8 +1,7 @@
 % !TEX program = xelatex
-% Odborna zprava podle experimentu a reportu ulozenych ve vetvi main (commit 44218a0).
+% Odborna zprava podle dolozenych vysledku experimentu a E3 reportu.
 % Doporucene umisteni v repozitari: docs/latex/main.tex
-% Překlad prováděj ze složky docs/latex; grafy jsou v docs/figures.
-% xelatex main.tex (dvakrát kvůli křížovým odkazům).
+% Preklad: xelatex main.tex; pro grafy je dostupna zalozni vektorova varianta.
 \documentclass[11pt,a4paper]{article}
 \usepackage{fontspec}
 \setmainfont{Liberation Serif}
@@ -10,13 +9,14 @@
 \usepackage{polyglossia}
 \setdefaultlanguage{czech}
 \setotherlanguage{english}
-\usepackage[a4paper,top=21mm,bottom=21mm,left=23mm,right=23mm]{geometry}
+\usepackage[a4paper,top=18mm,bottom=18mm,left=23mm,right=23mm]{geometry}
 \usepackage{microtype}
 \usepackage{amsmath,amssymb,mathtools}
 \usepackage{graphicx,booktabs,tabularx,multirow,array}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf,skip=4pt}
 \usepackage{float}
+\usepackage{needspace}
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage{tikz}
@@ -25,7 +25,7 @@
 \usepackage[unicode,colorlinks=true,linkcolor=black,urlcolor=blue!50!black,citecolor=black]{hyperref}
 \usepackage{url}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{5.4pt plus 1pt minus 0.8pt}
+\setlength{\parskip}{4.8pt plus 1pt minus 0.8pt}
 \setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
 \setlength{\intextsep}{7pt plus 2pt minus 2pt}
 \setlength{\tabcolsep}{5.2pt}
@@ -52,19 +52,19 @@
 \vspace{-1.5mm}
 \begin{abstract}
 \noindent
-Práce zkoumá binární klasifikaci již katalogově označených tranzitních signálů z fotometrických měření družice TESS. Porovnává logistickou regresi, vlastní dvouvětvovou jednorozměrnou konvoluční síť (CNN) a předtrénovaný encoder Mantis-8M se samostatně učenou klasifikační hlavou. Z~13\,254 katalogových záznamů bylo vybráno 1\,918 použitelných signálů se štítkem potvrzená planeta nebo falešně pozitivní signál. Hvězdy byly rozděleny podle identifikátoru TIC tak, aby se nevyskytovaly v~různých množinách. Na jednorázově vyhodnoceném nezávislém testu 290 signálů dosáhly modely v metrice \emph{Average Precision} (AP) 0,7981, 0,8851\,$\pm$\,0,0049 a 0,9009\,$\pm$\,0,0024. Výsledky podporují použitelnost přenosu reprezentací z předtrénovaného modelu, ale nevypovídají o spolehlivosti potvrzování dosud neznámých exoplanet.
+Práce zkoumá binární klasifikaci již katalogově označených tranzitních signálů z fotometrických měření družice TESS. Porovnává logistickou regresi, vlastní dvouvětvovou jednorozměrnou konvoluční síť (CNN) a předtrénovaný encoder Mantis-8M se samostatně učenou klasifikační hlavou. Z~13\,254 katalogových záznamů bylo vybráno 1\,918 použitelných signálů se štítkem potvrzená planeta nebo falešně pozitivní signál. Hvězdy byly rozděleny podle identifikátoru TIC tak, aby se nevyskytovaly v~různých množinách. Na jednorázově vyhodnoceném nezávislém testu 290 signálů dosáhly modely v metrice \emph{Average Precision} (AP) 0,7981, 0,8851\,$\pm$\,0,0049 a 0,9009\,$\pm$\,0,0024. Doplňková pětinásobná skupinová CV nad vývojovými daty podpořila vyšší průměrnou AP modelu Mantis; přínos masky pokrytí se nepotvrdil. Výsledky podporují použitelnost přenosu reprezentací z předtrénovaného modelu, ale nevypovídají o spolehlivosti potvrzování dosud neznámých exoplanet.
 \end{abstract}
 
 \section{Úvod a cíl práce}
 Exoplanety lze zjišťovat mimo jiné pomocí tranzitní fotometrie: při přechodu tělesa před diskem mateřské hvězdy dojde k malému periodickému poklesu jejího pozorovaného jasu. Družice \emph{Transiting Exoplanet Survey Satellite} (TESS) poskytuje rozsáhlé světelné křivky hvězd vhodné pro vyhledávání takových jevů \cite{ricker2015}; soubory FITS jsou zpřístupněny v archivu MAST \cite{mast}. Pozorovaný pokles však může mít také neplanetární příčinu, například zákrytovou dvojhvězdu nebo instrumentální systematiku.
 
-Cílem práce není hledat nové periodické události v~neznámé časové řadě, ale \textbf{rozlišovat již identifikované signály} se dvěma katalogovými dispozicemi: potvrzená planeta a falešně pozitivní signál. Výzkumná otázka zní, zda model založený na předtrénovaných reprezentacích dosáhne při malém počtu štítkovaných příkladů lepšího výsledku než vlastní CNN a klasický baseline. Doplňující experimenty zkoumají význam lokálního a globálního pohledu i explicitní informace o pokrytí jednotlivých fázových intervalů.
+Cílem práce není hledat nové periodické události v~neznámé časové řadě, ale \textbf{rozlišovat již identifikované signály} se dvěma katalogovými štítky: potvrzená planeta a falešně pozitivní signál. Výzkumná otázka zní, zda model založený na předtrénovaných reprezentacích dosáhne při malém počtu štítkovaných příkladů lepšího výsledku než vlastní CNN a klasický baseline. Doplňující experimenty zkoumají význam lokálního a globálního pohledu i explicitní informace o pokrytí jednotlivých fázových intervalů.
 
 \section{Data a předzpracování}
 \subsection{Zdroj a výběr signálů}
-Použit byl soubor \dataset\ publikovaný na Hugging Face \cite{dataset}. Datový soubor přebírá katalogové dispozice mimo jiné ze služeb ExoFOP-TESS a NASA Exoplanet Archive \cite{exofop,nea}; jeho veřejná karta uvádí licenci CC0 1.0. Štítky jsou katalogové, nikoli výsledky vlastní ruční anotace. Metadata zahrnují 13\,254 signálů: 9\,895 kandidátů, 1\,312 potvrzených planet, 666 falešně pozitivních a 1\,381 záznamů s~neznámým štítkem. Neověřené kandidáty nelze bez dalšího považovat za pozitivní příklady, a~proto byly ze supervidované binární úlohy vyloučeny.
+Použit byl soubor \dataset\ publikovaný na Hugging Face \cite{dataset}. Datový soubor přebírá katalogové štítky mimo jiné ze služeb ExoFOP-TESS a NASA Exoplanet Archive \cite{exofop,nea}; jeho veřejná karta uvádí licenci CC0 1.0. Štítky jsou katalogové, nikoli výsledky vlastní ruční anotace. Metadata zahrnují 13\,254 signálů: 9\,895 kandidátů, 1\,312 potvrzených planet, 666 falešně pozitivních a 1\,381 záznamů s~neznámým štítkem. Neověřené kandidáty nelze bez dalšího považovat za pozitivní příklady, a~proto byly ze supervidované binární úlohy vyloučeny.
 
-Výchozích 1\,978 známě označených signálů prošlo postupným filtrováním. Nejdříve 39 příkladů nesplnilo souhrnnou podmínku \code{preliminary\_ready} (připravenost metadat, platná efemerida nebo dostupnost použitelného FITS); dalších 7 neprošlo kontrolou tranzitního pokrytí, 1 měl délku tranzitu alespoň čtvrtinu periody a 13 nemělo dostatečné pokrytí fázových binů. Vzniklo \textbf{1\,918 signálů}: 1\,286 potvrzených planet a 632 falešně pozitivních případů. Rozpad prvních 39 vyřazených příkladů podle jednotlivých příčin nebyl dosud samostatně kvantifikován.
+Výchozích 1\,978 známě označených signálů prošlo postupným filtrováním. Nejdříve 39 příkladů nesplnilo souhrnnou podmínku \code{preliminary\_ready}, zahrnující kontroly metadat, efemeridy a dostupnosti použitelného FITS; dalších 7 neprošlo kontrolou tranzitního pokrytí, 1 měl délku tranzitu alespoň čtvrtinu periody a 13 nemělo dostatečné pokrytí fázových binů. Vzniklo \textbf{1\,918 signálů}: 1\,286 potvrzených planet a 632 falešně pozitivních případů. Rozpad prvních 39 vyřazených příkladů podle jednotlivých příčin nebyl dosud samostatně kvantifikován.
 
 \begin{table}[H]
 \centering\small
@@ -94,7 +94,7 @@ Pro každý signál byly ze souborů FITS načteny čas, fotometrický tok a pod
 Lokální pohled pokrývá interval $\pm2{,}5$ násobku délky tranzitu a obsahuje $101$ binů; globální pohled zahrnuje celou fázi $[-0{,}5,0{,}5)$ v~$201$ binech. V~každém binu se počítá medián relativního toku, pokud jsou k~dispozici alespoň tři měření. Druhým kanálem je binární maska pozorovanosti. Požadováno je alespoň 45\,\% pokrytých lokálních, 30\,\% globálních a pět centrálních lokálních binů. Vstupy mají rozměry $101\times2$ a $201\times2$.
 
 \section{Modely a matematická formulace}
-Uvažujme dataset $\mathcal D=\{(x_i,y_i)\}_{i=1}^{n}$, kde $y_i\in\{0,1\}$ a $x_i=(x_i^{\mathrm{loc}},x_i^{\mathrm{glob}})$. Model $f_{\theta}$ vytváří \emph{logit} $z_i=f_{\theta}(x_i)\in\mathbb R$, který se převádí sigmoidou na skóre $p_i=\sigma(z_i)=1/(1+e^{-z_i})$. Pro neuronové modely byla použita vážená binární křížová entropie nad logity:
+Uvažujme dataset $\mathcal D=\{(x_i,y_i)\}_{i=1}^{n}$, kde $y_i\in\{0,1\}$ ($1$ = potvrzená planeta, $0$ = falešně pozitivní signál) a $x_i=(x_i^{\mathrm{loc}},x_i^{\mathrm{glob}})$. Model $f_{\theta}$ vytváří \emph{logit} $z_i=f_{\theta}(x_i)\in\mathbb R$, který se převádí sigmoidou na skóre $p_i=\sigma(z_i)=1/(1+e^{-z_i})$. Pro neuronové modely byla použita vážená binární křížová entropie nad logity:
 \begin{equation}
 \mathcal L(\theta)=-\frac1n\sum_{i=1}^n\!\left[w_+ y_i\log\sigma(z_i)+(1-y_i)\log\bigl(1-\sigma(z_i)\bigr)\right],
 \qquad w_+=\frac{n_-}{n_+},
@@ -103,7 +103,7 @@ Uvažujme dataset $\mathcal D=\{(x_i,y_i)\}_{i=1}^{n}$, kde $y_i\in\{0,1\}$ a $x
 kde $n_+$ a $n_-$ jsou počty pozitivních a negativních trénovacích příkladů. V~implementaci je použita numericky stabilní \code{BCEWithLogitsLoss} s~\code{pos\_weight}. Minimalizaci provádí AdamW. Výstupní skóre nejsou automaticky kalibrované pravděpodobnosti astronomického potvrzení.
 
 \subsection{Baseline: logistická regrese}
-Jako srovnávací klasický model slouží logistická regrese nad zploštěnými lokálními a globálními vstupy (celkem 604 příznaků). Standardizace je odvozena pouze z~trénovacích dat. Baseline dovoluje posoudit, zda neuronové reprezentace přidávají užitek oproti lineární rozhodovací hranici nad stejnými pohledy.
+Jako srovnávací klasický model slouží logistická regrese nad zploštěnými lokálními a globálními vstupy (celkem 604 příznaků). Standardizace je odvozena pouze z~trénovacích dat. Použita byla logistická regrese s~$L_2$ regularizací ($C=0{,}1$), váhami tříd \code{balanced} a solverem \code{liblinear}. Baseline dovoluje posoudit, zda neuronové reprezentace přidávají užitek oproti lineární rozhodovací hranici nad stejnými pohledy.
 
 \subsection{Model A: vlastní dvouvětvová 1D CNN}
 CNN byla navržena a trénována od náhodné inicializace. Každý pohled zpracovává samostatná větev s~konvolucemi $2\!\rightarrow\!32$ (jádro 7), $32\!\rightarrow\!64$ (jádro 5) a $64\!\rightarrow\!64$ (jádro 3), následovanými normalizací, ReLU a dvěma operacemi MaxPool po prvních vrstvách. Adaptivní průměrový a maximový pooling vytvoří v~každé větvi 128 příznaků. Jejich konkatenace dává vektor délky 256, který prochází vrstvou $256\rightarrow128$, ReLU, dropoutem a lineárním výstupem $128\rightarrow1$. Celkový počet parametrů je \textbf{79\,937}.
@@ -145,7 +145,7 @@ Pro CNN proběhl grid search $3\times3\times3=27$ konfigurací: learning rate $\
 Vybrané konfigurace byly zopakovány se seedy $42$, $123$ a $2026$. Všechny běhy sdílely jediný pevný TIC-disjunktní split. Směrodatná odchylka proto charakterizuje citlivost na inicializaci, nikoli nejistotu při nezávislém výběru jiných hvězd. Seed 42 se současně účastnil výběru hyperparametrů.
 
 \subsection{Dva cílené experimenty}
-\textbf{E1 -- příspěvek obou fázových pohledů.} Hypotéza: kombinace lokální a globální části křivky zlepší validační AP. Zvolena byla \emph{ablace na úrovni příznaků}: výstup nepoužité větve CNN byl při trénování i validaci nahrazen nulami, aby její konvoluční bias a BatchNorm nevytvářely nenulové konstantní příznaky. Data, TIC split, optimizer, hyperparametry a seedy zůstaly stejné. Neaktivní větev však nepřispívá gradientem, proto jednotlivé varianty nemají stejnou \emph{efektivní} kapacitu. Druhý, samostatně uložený pokus s nulováním vstupu (viz \code{docs/model\_a\_experiment\_e1\_views.md}) je pomocnou kontrolou, nikoli zdrojem následující tabulky.
+\textbf{E1 -- příspěvek obou fázových pohledů.} Hypotéza: kombinace lokální a globální části křivky zlepší validační AP. Zvolena byla \emph{ablace na úrovni příznaků}: výstup nepoužité větve CNN byl při trénování i validaci nahrazen nulami, aby její konvoluční bias a BatchNorm nevytvářely nenulové konstantní příznaky. Data, rozdělení podle TIC, optimalizátor, hyperparametry a seedy zůstaly stejné. Neaktivní větev však nepřispívá gradientem, proto jednotlivé varianty nemají stejnou \emph{efektivní} kapacitu. Druhý, samostatně uložený pokus s nulováním vstupu (viz \code{docs/model\_a\_experiment\_e1\_views.md}) je pomocnou kontrolou, nikoli zdrojem následující tabulky.
 
 \begin{table}[H]
 \centering\small
@@ -205,9 +205,9 @@ Testovací množina obsahovala 195 potvrzených planet a 95 falešně pozitivní
 
 \begin{figure}[H]
 \centering
-% Preferuje ověřený graf ze složky docs/figures; jinak záložní schéma.
+% Pokud existuje puvodni graf v repozitari, pouzijeme ho. Jinak samostatny vektorovy graf.
 \IfFileExists{../figures/final_test_ap_comparison.pdf}{%
-\includegraphics[width=0.80\linewidth]{../figures/final_test_ap_comparison.pdf}%
+\includegraphics[width=0.70\linewidth]{../figures/final_test_ap_comparison.pdf}%
 }{%
 \begin{tikzpicture}
 \begin{axis}[
@@ -224,7 +224,7 @@ Testovací množina obsahovala 195 potvrzených planet a 95 falešně pozitivní
 \end{axis}
 \end{tikzpicture}
 }
-\caption{Výsledná Average Precision na nezávislé testovací množině. Přerušovaná vodorovná čára značí prevalenci pozitivní třídy (0,672).}
+\caption{Výsledná Average Precision na nezávislé testovací množině. Přerušovaná čára vyznačuje prevalenci pozitivní třídy (0,672).}
 \label{fig:ap}
 \end{figure}
 
@@ -263,12 +263,12 @@ Mantis & 2026 & 0,9014 & 0,8152 \\
 \end{tabular}
 \end{table}
 
-Na testu se AP u CNN mezi seedy pohybovala od 0,8809 do 0,8905, u Mantis od 0,8984 do 0,9030. Naproti tomu F1 CNN vykazovala větší rozptyl ($0{,}7772\pm0{,}0679$) než Mantis ($0{,}8119\pm0{,}0106$), přestože AP byla relativně stabilní. To ukazuje citlivost pevného rozhodovacího prahu na rozložení výstupních skóre různých inicializací.
+Na testu se AP u CNN mezi seedy pohybovala od 0,8809 do 0,8905, u Mantis od 0,8984 do 0,9030. Naproti tomu F1 CNN vykazovala větší variabilitu mezi inicializacemi ($0{,}7772\pm0{,}0679$) než Mantis ($0{,}8119\pm0{,}0106$), přestože AP byla relativně stabilní. To ukazuje citlivost pevného rozhodovacího prahu na rozložení výstupních skóre různých inicializací.
 
 \begin{figure}[H]
 \centering
 \IfFileExists{../figures/final_test_f1_by_seed.pdf}{%
-\includegraphics[width=0.70\linewidth]{../figures/final_test_f1_by_seed.pdf}%
+\includegraphics[width=0.80\linewidth]{../figures/final_test_f1_by_seed.pdf}%
 }{%
 \begin{tikzpicture}
 \begin{axis}[
@@ -286,18 +286,41 @@ Na testu se AP u CNN mezi seedy pohybovala od 0,8809 do 0,8905, u Mantis od 0,89
 \end{axis}
 \end{tikzpicture}
 }
-\caption{Proměnlivost F1 mezi inicializacemi při pevném rozhodovacím prahu 0,5. Hodnoty seedů jsou kategorické identifikátory.}
+\caption{Proměnlivost F1 mezi inicializacemi při pevném rozhodovacím prahu 0,5.}
 \label{fig:f1}
 \end{figure}
 
-Uloženy byly rovněž počty záměn. Například Mantis při seedu 123 správně klasifikoval 153 potvrzených a 70 falešně pozitivních signálů; 42 potvrzených označil jako negativní a 25 falešně pozitivních jako pozitivní. Při interpretaci nesmí být opomenuto, že katalogové labely jsou kontextově podmíněné a nemusí odpovídat definitivní fyzikální charakterizaci všech jevů.
+Uloženy byly rovněž počty záměn. Například Mantis při seedu 123 správně klasifikoval 153 potvrzených a 70 falešně pozitivních signálů; 42 potvrzených označil jako negativní a 25 falešně pozitivních jako pozitivní. Při interpretaci nesmí být opomenuto, že katalogové štítky jsou kontextově podmíněné a nemusí odpovídat definitivní fyzikální charakterizaci všech jevů.
+
+
+\Needspace{8\baselineskip}
+\subsection{Doplňkové ověření: pětinásobná skupinová cross-validation (E3)}
+Pro ověření citlivosti výsledků na složení vývojových hvězd byla po dokončení původního experimentu provedena doplňková \emph{5-fold} cross-validation nad 1\,628 původními trénovacími a validačními signály. Původní nezávislý test 290 signálů zůstal oddělený. \code{StratifiedGroupKFold} seskupoval jednotlivé signály podle TIC, takže tatáž hvězda nemohla vstoupit současně do trénovací a hodnocené části foldu. Pět validačních foldů obsahovalo 317--334 signálů; logistická regrese byla vyhodnocena jednou na fold, CNN, Mantis i ablační varianty pro tři seedy; u neuronových modelů se epocha vybírala na vnitřní TIC-validaci a následně se model znovu učil na celé trénovací části daného vnějšího foldu. Standardizace byla v každém foldu odvozena pouze z jeho trénovacích dat.
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{E3: průměr a výběrová SD z pěti vnějších foldů (neuronové modely: nejprve průměr tří seedů v každém foldu); BA značí vyváženou přesnost.}
+\label{tab:e3models}
+{\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lcccc}
+\toprule
+Model & AP & ROC-AUC & BA & F1 \\
+\midrule
+Logistická regrese & $0{,}8016\pm0{,}0247$ & $0{,}7114\pm0{,}0394$ & $0{,}6726\pm0{,}0361$ & $0{,}6756\pm0{,}0612$ \\
+CNN & $0{,}9000\pm0{,}0151$ & $0{,}8321\pm0{,}0240$ & $0{,}7414\pm0{,}0317$ & $0{,}7784\pm0{,}0507$ \\
+Mantis-8M + MLP & $\mathbf{0{,}9289\pm0{,}0071}$ & $0{,}8797\pm0{,}0109$ & $0{,}7947\pm0{,}0232$ & $0{,}8452\pm0{,}0158$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+V E3 měl Mantis vyšší průměrnou AP než CNN ve všech pěti foldech. Párová ablace E1 podpořila přínos obou pohledů: CNN s oběma dosáhla AP $0{,}9000$, pouze s lokálním $0{,}8855$ a pouze s globálním $0{,}8729$; rozdíly činily $+0{,}0145\pm0{,}0148$, respektive $+0{,}0271\pm0{,}0170$ (kladné ve 12/15, respektive 13/15 párech; SD mezi pěti foldy). U E2 se však malý původní pozitivní efekt masky nepotvrdil: AP s maskou $0{,}9000$, bez masky $0{,}9015$, párový rozdíl $-0{,}0014\pm0{,}0040$ ve prospěch varianty bez masky (počítaný z nezaokrouhlených hodnot; SD mezi pěti foldy). Maska měla vyšší AP jen v 8 z 15 párovaných běhů. E3 je dodatečná analýza robustnosti, nikoli nový nezávislý test nebo nezaujatý odhad po výběru hyperparametrů; ty byly před CV vybrány na části vývojových dat. Uváděná SD shrnuje pět průměrů foldů, ne 15 nezávislých datových splitů.
 
 \section{Diskuse, omezení a náklady}
-Silnější výkon Mantis může být dán vhodnější reprezentací časových řad, ale také výhodou externího předtrénování; na základě této studie nelze obě vysvětlení oddělit. Malé zastoupení negativních příkladů, selekce pouze dvou katalogových dispozic a vysoká pozitivní prevalence omezují přenositelnost výsledků na nepotvrzené kandidáty. Rovněž tři seedy při jediném splitu neposkytují dostatečný podklad k testu statistické významnosti malého rozdílu AP.
+Silnější výkon Mantis může být dán vhodnější reprezentací časových řad, ale také výhodou externího předtrénování; na základě této studie nelze obě vysvětlení oddělit. Malé zastoupení negativních příkladů, selekce pouze dvou katalogových štítků a vysoká pozitivní prevalence omezují přenositelnost výsledků na nepotvrzené kandidáty. Původní test obsahuje jediný pevný split a tři seedy, takže neposkytuje dostatečný podklad k testu statistické významnosti malého rozdílu AP. Doplňková CV (E3) omezuje závislost závěrů na jednom vývojovém rozdělení, ale nepředstavuje nový nezávislý test.
 
 Analýza validačních chyb upozornila na opakovaná falešná pozitiva u několika systémů označených jako zákrytové dvojhvězdy a na falešná negativa i u signálů se zřetelným tranzitem. Smysluplná následná práce by měla zahrnovat kontrolu nezávislých astronomických katalogů, systematické hodnocení nejistoty a případnou externí sadu hvězd. Skóre modelu není astronomickým potvrzením planety.
 
-Výpočetní prostředí: Windows 11, Python 3.10.6, NVIDIA GeForce RTX 4060 Laptop GPU a CUDA, PyTorch 2.14.1+cu130. CNN má 79\,937 parametrů (všechny trénované); Mantis má 8\,103\,936 zmrazených parametrů encoderu a 131\,329 trénovaných parametrů hlavy, celkem 8\,235\,265. Uloženy jsou trénovací/validační křivky CNN s loss a AP a řady metrik během trénování; soubory jednotlivých běhů leží lokálně ve \code{full\_dataset/} a nejsou ve veřejné podobě součástí repozitáře.
+Výpočetní prostředí: Windows 11, Python 3.10.6, NVIDIA GeForce RTX 4060 Laptop GPU a CUDA, PyTorch 2.14.1+cu130. CNN má 79\,937 parametrů (všechny trénované); Mantis má 8\,103\,936 zmrazených parametrů encoderu a 131\,329 trénovaných parametrů hlavy, celkem 8\,235\,265. Uloženy jsou trénovací/validační křivky CNN s loss a AP a řady metrik během trénování; ukázková trénovací křivka je dostupná v \code{docs/figures/}, zatímco ostatní křivky a checkpointy jednotlivých běhů zůstávají lokálně ve \code{full\_dataset/}.
 
 Trénování finální CNN trvalo podle seedu 5,26 / 8,89 / 4,35~s. Pro \emph{původní} netuněnou hlavu Mantis jsou zdokumentovány časy 1,14 / 1,15 / 0,94~s (bez extrakce embeddingů); pro \emph{vybranou} doladěnou hlavu nejsou v commitnutém shrnutí časy uvedeny, takže je nelze věrohodně porovnat. Jejich přesné hodnoty lze dodatečně odečíst z místních \code{metrics.json}, pokud se dochovaly. Výpočetní čas externího předtrénování Mantis není znám.
 
@@ -305,12 +328,13 @@ Při testu 290 signálů trvala extrakce dvou pohledů Mantis přibližně 0,503
 Reprodukovatelnost podporují zdrojové skripty, pevná náhodná semena, konfigurační soubory, kontrola SHA-256 vstupů a zaznamenané metriky v~GitHub repozitáři. Rozsáhlé FITS, odvozené křivky trénování a checkpointy nejsou uloženy v~Gitu. Kompletní nezávislý rerun od čistého klonu nebyl proveden; popsaný postup a verze závislostí proto představují dokumentované, nikoli experimentálně potvrzené záruky úplné reprodukce.
 
 \section{Závěr}
-Studie splnila cíl porovnat jednoduchý baseline, vlastní 1D CNN a adaptovaný předtrénovaný encoder na konzistentně připravené binární úloze TESS. Všechny modely byly posouzeny na společném TIC-disjunktním testu. Nejvyšší průměrnou AP $0{,}9009\pm0{,}0024$ získal Mantis-8M s~MLP hlavou, vlastní CNN dosáhla $0{,}8851\pm0{,}0049$ a logistická regrese 0,7981. Experiment E1 podpořil použití obou fázových pohledů; E2 naopak ukázal jen malý přínos explicitní masky pokrytí. Obě zjištění zdůrazňují význam kontrolovaných ablačních studií. Navazujícím samostatným směrem je inference na nepotvrzených kandidátech, nikoli jejich automatické prohlašování za planety.
+Studie splnila cíl porovnat jednoduchý baseline, vlastní 1D CNN a adaptovaný předtrénovaný encoder na konzistentně připravené binární úloze TESS. Všechny modely byly posouzeny na společném TIC-disjunktním testu. Nejvyšší průměrnou AP $0{,}9009\pm0{,}0024$ získal Mantis-8M s~MLP hlavou, vlastní CNN dosáhla $0{,}8851\pm0{,}0049$ a logistická regrese 0,7981. Experiment E1 a doplňková 5-fold CV podpořily použití obou fázových pohledů; E2 vykázal na původní validaci malý pozitivní efekt masky, který se v CV nepotvrdil. Obě zjištění zdůrazňují význam kontrolovaných ablačních studií. Navazujícím samostatným směrem je inference na nepotvrzených kandidátech, nikoli jejich automatické prohlašování za planety.
 
 \paragraph{Využití generativní AI.} Generativní AI byla použita při návrhu experimentů, formulování a kontrole kódu, ladění, dokumentaci a sepisování první verze zprávy. Správnost výstupů byla ověřována spuštěním skriptů, kontrolou katalogových štítků a TIC, auditem uložených artefaktů, validačními běhy a jednorázovým testem. Za interpretaci a konečnou odbornou správnost odpovídá autor.
 
 \vspace{-2pt}
 \begin{thebibliography}{10}
+\small
 \setlength{\itemsep}{1pt}
 \bibitem{ricker2015} G.~R. Ricker et al.: Transiting Exoplanet Survey Satellite (TESS). \emph{Journal of Astronomical Telescopes, Instruments, and Systems} 1(1), 014003 (2015). \href{https://doi.org/10.1117/1.JATIS.1.1.014003}{doi:10.1117/1.JATIS.1.1.014003}.
 \bibitem{dataset} Saadtaleb: \emph{TESS Light Curves for Planet Detection}. Datový soubor, Hugging Face (2026). \url{https://huggingface.co/datasets/saadtaleb/tess-lightcurves-planets}.
